@@ -300,28 +300,37 @@ def doQuery(sql, verbose): # write log to database
         cursor.close() 
     disconnect(cnx, verbose) # disconnect from database
     return result
-  
+
+def statCount(cursor, field, verbose):
+    sql = "SELECT %s, COUNT(*) FROM %s GROUP BY %s" % (field, tableName, field)
+    try: # write log
+        cursor.execute(sql)
+    except mysql.connector.Error as err:
+        onError(9, err.msg)
+    else:
+        if verbose:
+            print "    OK"
+    return cursor    
+
 def showStatistics(verbose):
     cnx =connect(dbName, verbose) # connect to database
-    
+    print "--- Statistics:"
     if cnx:
         cursor = cnx.cursor() # create cursor
         if verbose:
             print "--- Querying database"
-        sql = "SELECT ip, COUNT(*) FROM %s GROUP BY ip" % tableName
-        try: # write log
-            cursor.execute(sql)
-        except mysql.connector.Error as err:
-            onError(9, err.msg)
-        else:
-            if verbose:
-                print "    OK"
-        for ip, count in cursor:
-            if count == 1:
-                word = "time"
-            else:
-                word = "times"
-            print "IP: %s banned: %s %s" % (ip, count, word)
+        
+        fieldList = (["ip", "IP"], ["country", "Country"], ["name", "Service"])
+        
+        for field, text in fieldList:
+            print
+            cursor = statCount(cursor, field, verbose) # count occurences of ip:s
+            for field, count in cursor:
+                if count == 1:
+                    word = "time"
+                else:
+                    word = "times"
+                print "%s: %s\tbanned: %s %s" % (text, field, count, word)
     
     cursor.close()
     disconnect(cnx, verbose) # disconnect from database
