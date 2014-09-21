@@ -8,10 +8,11 @@ from functions import *
 writeLog = False
 verbose = False
 setupDatabase = False
+statistics = False
 
 ############### handle arguments ###############
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'wn:q:p:i:e:vh' , ['write', 'name=', 'protocol=', 'port=', 'ip=', 'event=', 'setupdb', 'verbose', 'help'])
+    myopts, args = getopt.getopt(sys.argv[1:],'wsn:q:p:i:e:vh' , ['write', 'statistics', 'name=', 'protocol=', 'port=', 'ip=', 'event=', 'setupdb', 'verbose', 'help'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -36,6 +37,8 @@ for option, argument in myopts:
         verbose = True
     elif option in ('--setupdb'):
         setupDatabase = True
+    elif option in ('-vs', '--statistics'):
+        statistics = True    
     elif option in ('-h', '--help'):
         usage(0)
         
@@ -43,11 +46,12 @@ if setupDatabase:
     setupDB(verbose)    
     
 if writeLog:
-    log = (name, protocol, port, ip, event)
-    ipInfo = lookupIP(ip, verbose)
-    sql = logSql(log, ipInfo, verbose)
+    log = (name, protocol, port, ip, event) # declare the log to write
+    ipInfo = lookupIP(ip, verbose) # get geographical info of ip
+    sql = logSql(log, ipInfo, verbose) # construct sql
     if verbose:
         print sql
-    doQuery(sql, verbose)
+    result = doQuery(sql, verbose) # write to log
     
-    
+if statistics:
+    showStatistics(verbose)

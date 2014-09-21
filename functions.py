@@ -11,6 +11,7 @@ from mysql.connector import errorcode
 
 from getpass import getpass
 
+##### read config file
 config = ConfigParser.ConfigParser()
 config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__))) # read config file
 
@@ -23,6 +24,7 @@ tableName = config.get('mysql','tableName')
 dbUser = config.get('mysql','dbUser')
 dbPass = config.get('mysql','dbPass')
 
+##### what to do on errors
 def onError(errorCode, extra):
     print "\n*** Error:"
     if errorCode == 1:
@@ -41,6 +43,7 @@ def onError(errorCode, extra):
     elif errorCode == 9:
         print "    %s" % extra
 
+##### some help
 def usage(exitCode):
     print "\nUsage:"
     print "----------------------------------------"
@@ -61,20 +64,20 @@ def usage(exitCode):
     print "      Prints this"
     sys.exit(exitCode)
     
-def setupDB(verbose):
+def setupDB(verbose): # setup the database with tables and users
     if verbose:
         print "--- Setting up database"
         
-    dbUser = raw_input("User with rights to create database: ")
-    dbPass = getpass("Password: ")
+    dbUser = raw_input("User with rights to create database: ") # get user
+    dbPass = getpass("Password: ") # get user's passsword
     
     if verbose:
         print "Username: %s\nPassword: %s" % (dbUser, dbPass)
         print "--- Connecting to db server %s..." % dbHost
         
-    try:
+    try: # concect to database
         cnx = mysql.connector.connect(user = dbUser, password = dbPass, host = dbHost, port = dbPort)
-    except mysql.connector.Error as err:
+    except mysql.connector.Error as err: # get errors
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             onError(4, "Something is wrong with your user name or password\n    Have you run with argument '--setupdb' yet?")
         elif err.errno == errorcode.ER_BAD_DB_ERROR:
@@ -86,9 +89,9 @@ def setupDB(verbose):
         print "    OK"
         print "--- Creating database %s..." % dbName
         
-    cursor = cnx.cursor()
+    cursor = cnx.cursor() # construct cursor to use
     
-    tables = {}
+    tables = {} # these are the tables that will be created
     tables[tableName] = (
     "CREATE TABLE %s ("
     "  `no` int(11) NOT NULL AUTO_INCREMENT,"
@@ -108,10 +111,10 @@ def setupDB(verbose):
     "  PRIMARY KEY (`no`)"
     ") ENGINE=InnoDB" % tableName)
     
-    sql = "CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(dbName)
+    sql = "CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(dbName) # the sql for creating tables
     if verbose:
         print "+++ sql = %s" % sql
-    try:
+    try: # execute the sql
         cursor.execute(sql)
     except mysql.connector.Error as err:
         onError(7, "Failed creating database: {}".format(err))
@@ -129,7 +132,7 @@ def setupDB(verbose):
         print "    OK"
         print "--- Creating tables..."
     
-    for name, ddl in tables.iteritems():
+    for name, ddl in tables.iteritems(): # create the tables one by one
         print "--- Creating %s..." % name
         if verbose:
             print "+++ sql = %s" % ddl
@@ -146,13 +149,13 @@ def setupDB(verbose):
                 print "    OK"
                 print "--- Creating user %s..." % dbUser
 
-    dbUser = config.get('mysql','dbUser')
-    dbPass = config.get('mysql','dbPass')
+    dbUser = config.get('mysql','dbUser') # get the normal user
+    dbPass = config.get('mysql','dbPass') # get the normal user's password
             
-    sql = "CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'" % (dbUser, dbPass)
+    sql = "CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'" % (dbUser, dbPass) # sql for creating user
     if verbose:
         print "+++ sql = %s" % sql
-    try:
+    try: # create user
         cursor.execute(sql)
     except mysql.connector.Error as err:
         onError(9, err.msg)
@@ -161,10 +164,10 @@ def setupDB(verbose):
             print "    OK"
             print "--- Adding privileges"
         
-    sql = "GRANT ALL PRIVILEGES ON %s.* TO '%s'@'localhost' WITH GRANT OPTION" % (dbName, dbUser)
+    sql = "GRANT ALL PRIVILEGES ON %s.* TO '%s'@'localhost' WITH GRANT OPTION" % (dbName, dbUser) # sql for grants
     if verbose:
         print "+++ sql = %s" % sql
-    try:
+    try: # create grants for normal user
         cursor.execute(sql)
     except mysql.connector.Error as err:
         onError(9, err.msg)
@@ -173,10 +176,10 @@ def setupDB(verbose):
             print "    OK"
 
     cursor.close()
-    disconnect(cnx, verbose)
+    disconnect(cnx, verbose) # dosconnect from database
     sys.exit(0)
     
-def lookupIP(ip, verbose):
+def lookupIP(ip, verbose): # get geographical data for ip
     countryCode = ""
     country = ""
     regionCode = ""
@@ -188,11 +191,11 @@ def lookupIP(ip, verbose):
     metroCode = ""
     areaCode = ""
     
-    response = urllib.urlopen("http://freegeoip.net/xml/%s" % ip).read()
+    response = urllib.urlopen("http://freegeoip.net/xml/%s" % ip).read() # get xml from freegeoip
     if verbose:
         print "--- Response:\n%s" % response
     
-    xmlRoot = ET.fromstring(response)
+    xmlRoot = ET.fromstring(response) # read xml
     for xmlChild in xmlRoot:
 
         if 'CountryCode' in xmlChild.tag:
@@ -237,10 +240,9 @@ def lookupIP(ip, verbose):
                 print "--- Area code: %s" % areaCode
     
     ipInfo = longitude, latitude, countryCode, city, country, regionCode, region
-    #ipInfo = "-77.7451", "34.9022", "US", "Beulaville", "United States"
     return ipInfo
 
-def logSql(log, ipInfo, verbose):
+def logSql(log, ipInfo, verbose): # create sql for the log
     name, protocol, port, ip, event = log
     longitude, latitude, countryCode, city, country, regionCode, region = ipInfo
     sql = (
@@ -253,7 +255,7 @@ def logSql(log, ipInfo, verbose):
         print "+++ sql = %s" % sql
     return sql
 
-def connect(verbose):
+def connect(dbName, verbose): # connect to database as normal user
     if verbose:
         print "--- Connecting to db server %s..." % dbHost
         
@@ -271,27 +273,56 @@ def connect(verbose):
         print "    OK"
     return cnx
     
-def disconnect(cnx, verbose):
+def disconnect(cnx, verbose): # disconnect from database
     if verbose:
         print "--- Disconnecting from db server %s..." % dbHost
+    cnx.close()
         
-def doQuery(sql, verbose):
-    cnx =connect(verbose)
+def doQuery(sql, verbose): # write log to database
+    result = False
+    cnx =connect(dbName, verbose) # connect to database
     
     if cnx:
-        cursor = cnx.cursor()
+        cursor = cnx.cursor() # create cursor
         if verbose:
             print "--- Writing to database"
             
-        try:
+        try: # write log
+            cursor.execute(sql)
+        except mysql.connector.Error as err:
+            onError(9, err.msg)
+        else:
+            result = True
+            if verbose:
+                print "    OK"
+            
+        cnx.commit() # commit changes
+        cursor.close() 
+    disconnect(cnx, verbose) # disconnect from database
+    return result
+  
+def showStatistics(verbose):
+    cnx =connect(dbName, verbose) # connect to database
+    
+    if cnx:
+        cursor = cnx.cursor() # create cursor
+        if verbose:
+            print "--- Querying database"
+        sql = "SELECT ip, COUNT(*) FROM %s GROUP BY ip" % tableName
+        try: # write log
             cursor.execute(sql)
         except mysql.connector.Error as err:
             onError(9, err.msg)
         else:
             if verbose:
                 print "    OK"
-            
-        cnx.commit()
-        cursor.close()
-    result = disconnect(cnx, verbose)
+        for ip, count in cursor:
+            if count == 1:
+                word = "time"
+            else:
+                word = "times"
+            print "IP: %s banned: %s %s" % (ip, count, word)
+    
+    cursor.close()
+    disconnect(cnx, verbose) # disconnect from database
     
