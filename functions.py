@@ -323,14 +323,14 @@ def showStatistics(verbose):
         fieldList = (["ip", "IP"], ["country", "Country"], ["name", "Service"])
         
         for field, text in fieldList:
-            print
+            print "%s:" % text
             cursor = statCount(cursor, field, verbose) # count occurences of ip:s
             for field, count in cursor:
                 if count == 1:
                     word = "time"
                 else:
                     word = "times"
-                print "%s: %s\tbanned: %s %s" % (text, field, count, word)
+                print "\t%s\tbanned: %s %s" % (field, count, word)
     
     cursor.close()
     disconnect(cnx, verbose) # disconnect from database
