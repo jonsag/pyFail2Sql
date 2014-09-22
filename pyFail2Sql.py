@@ -10,9 +10,16 @@ verbose = False
 setupDatabase = False
 statistics = False
 
+name = ""
+protocol = ""
+port = ""
+ip = ""
+event = ""
+
 ############### handle arguments ###############
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'wsn:q:p:i:e:vh' , ['write', 'statistics', 'name=', 'protocol=', 'port=', 'ip=', 'event=', 'setupdb', 'verbose', 'help'])
+    myopts, args = getopt.getopt(sys.argv[1:],'wsn:q:p:i:e:vh' ,
+    ['write', 'statistics', 'name=', 'protocol=', 'port=', 'ip=', 'event=', 'setupdb', 'verbose', 'help'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -35,10 +42,10 @@ for option, argument in myopts:
         event = argument
     elif option in ('-v', '--verbose'):
         verbose = True
+    elif option in ('-s', '--statistics'):
+        statistics = True 
     elif option in ('--setupdb'):
-        setupDatabase = True
-    elif option in ('-vs', '--statistics'):
-        statistics = True    
+        setupDatabase = True   
     elif option in ('-h', '--help'):
         usage(0)
         
@@ -53,5 +60,7 @@ if writeLog:
         print sql
     result = doQuery(sql, verbose) # write to log
     
-if statistics:
+if statistics and not ip:
     showStatistics(verbose)
+elif statistics and ip:
+    showIpStats(ip, verbose)

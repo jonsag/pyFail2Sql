@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import ConfigParser, sys, os, urllib
+import ConfigParser, sys, os, urllib, datetime
 import mysql.connector
 
 import xml.etree.ElementTree as ET
@@ -10,6 +10,7 @@ import xml.etree.ElementTree as ET
 from mysql.connector import errorcode
 
 from getpass import getpass
+from bsddb.test.test_all import verbose
 
 ##### read config file
 config = ConfigParser.ConfigParser()
@@ -301,37 +302,65 @@ def doQuery(sql, verbose): # write log to database
     disconnect(cnx, verbose) # disconnect from database
     return result
 
-def statCount(cursor, field, verbose):
-    sql = "SELECT %s, COUNT(*) FROM %s GROUP BY %s" % (field, tableName, field)
-    try: # write log
+def executeSql(cursor, sql, verbose):
+    if verbose:
+        print "--- Querying database"
+        print "+++ sql = %s" % sql
+    try: # get answer
         cursor.execute(sql)
     except mysql.connector.Error as err:
         onError(9, err.msg)
     else:
         if verbose:
             print "    OK"
-    return cursor    
+    return cursor  
 
 def showStatistics(verbose):
     cnx =connect(dbName, verbose) # connect to database
-    print "--- Statistics:"
-    if cnx:
-        cursor = cnx.cursor() # create cursor
-        if verbose:
-            print "--- Querying database"
+    print "Statistics:\n"
+
+    cursor = cnx.cursor() # create cursor
         
-        fieldList = (["ip", "IP"], ["country", "Country"], ["name", "Service"])
+    fieldList = (["ip", "IP"], ["country", "Country"], ["name", "Service"])
         
-        for field, text in fieldList:
-            print "%s:" % text
-            cursor = statCount(cursor, field, verbose) # count occurences of ip:s
-            for field, count in cursor:
-                if count == 1:
-                    word = "time"
-                else:
-                    word = "times"
-                print "\t%s\tbanned: %s %s" % (field, count, word)
+    for field, text in fieldList:
+        print "%s:" % text
+        sql = "SELECT %s, COUNT(*) FROM %s GROUP BY %s" % (field, tableName, field)            
+        cursor = executeSql(cursor, sql, verbose)
+        for field, count in cursor:
+            if count == 1:
+                word = "time"
+            else:
+                word = "times"
+            print "%s\tbanned: %s %s" % (field, count, word)
+        print
     
     cursor.close()
     disconnect(cnx, verbose) # disconnect from database
+
+def showIpStats(ip, verbose):
+    cnx =connect(dbName, verbose) # connect to database
+    print "Statistics on %s:\n" % ip
     
+    cursor = cnx.cursor() # create cursor
+        
+    sql = "SELECT ip, COUNT(*) FROM %s WHERE ip = '%s'" % (tableName, ip)
+    cursor = executeSql(cursor, sql, verbose)
+    for field, count in cursor:
+        if count > 0:
+            if count == 1:
+                word = "time"
+            else:
+                word = "times"
+            print "banned: %s %s" % (count, word)
+            
+            sql = "SELECT `timeStamp`, `city`, `country` FROM %s WHERE ip = '%s'" % (tableName, ip)
+            cursor = executeSql(cursor, sql, verbose)
+            for timeStamp, city, country in cursor:
+                print "%s\t%s, %s" % (timeStamp, city, country)
+
+        else:
+            print "IP does not occur in database"
+
+    cursor.close()
+    disconnect(cnx, verbose) # disconnect from database
