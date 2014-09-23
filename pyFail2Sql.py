@@ -63,7 +63,7 @@ if writeLog:
         print sql
     result = doQuery(sql, verbose) # write to log
     
-if statistics and not ip:
+if statistics and not ip and not country:
     showStatistics(verbose)
 elif statistics and ip:
     showIpStats(ip, verbose)
