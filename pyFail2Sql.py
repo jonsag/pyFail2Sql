@@ -15,11 +15,12 @@ protocol = ""
 port = ""
 ip = ""
 event = ""
+country = ""
 
 ############### handle arguments ###############
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'wsn:q:p:i:e:vh' ,
-    ['write', 'statistics', 'name=', 'protocol=', 'port=', 'ip=', 'event=', 'setupdb', 'verbose', 'help'])
+    myopts, args = getopt.getopt(sys.argv[1:],'wsn:q:p:i:e:c:vh' ,
+    ['write', 'statistics', 'name=', 'protocol=', 'port=', 'ip=', 'event=', 'country=', 'setupdb', 'verbose', 'help'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -40,6 +41,8 @@ for option, argument in myopts:
         ip = argument
     elif option in ('-e', '--event'):
         event = argument
+    elif option in ('-c', '--country'):
+        country = argument
     elif option in ('-v', '--verbose'):
         verbose = True
     elif option in ('-s', '--statistics'):
@@ -64,3 +67,5 @@ if statistics and not ip:
     showStatistics(verbose)
 elif statistics and ip:
     showIpStats(ip, verbose)
+elif statistics and country:
+    showCountryStats(country, verbose)

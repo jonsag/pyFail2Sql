@@ -354,13 +354,38 @@ def showIpStats(ip, verbose):
                 word = "times"
             print "banned: %s %s" % (count, word)
             
-            sql = "SELECT `timeStamp`, `city`, `country` FROM %s WHERE ip = '%s'" % (tableName, ip)
+            sql = "SELECT `timeStamp`, `city`, `country`, `countryCode` FROM %s WHERE ip = '%s'" % (tableName, ip)
             cursor = executeSql(cursor, sql, verbose)
-            for timeStamp, city, country in cursor:
-                print "%s\t%s, %s" % (timeStamp, city, country)
+            for timeStamp, city, country, countryCode in cursor:
+                print "%s\t%s, %s %s" % (timeStamp, city, country, countryCode)
 
         else:
             print "IP does not occur in database"
 
     cursor.close()
     disconnect(cnx, verbose) # disconnect from database
+    
+def showCountryStats(country, verbose):
+    cnx =connect(dbName, verbose) # connect to database
+    print "Statistics on %s:\n" % country
+    
+    cursor = cnx.cursor() # create cursor
+    
+    sql = "SELECT country, COUNT(*) FROM %s WHERE ip = '%s'" % (tableName, country)
+    cursor = executeSql(cursor, sql, verbose)
+    for field, count in cursor:
+        if count > 0:
+            if count == 1:
+                word = "time"
+            else:
+                word = "times"
+            print "banned: %s %s" % (count, word)
+            
+            sql = "SELECT `timeStamp`, `ip`, `city`, `countryCode` FROM %s WHERE country = '%s'" % (tableName, country)
+            cursor = executeSql(cursor, sql, verbose)
+            for timeStamp, ip, city, countryCode in cursor:
+                print "%s\t%s, %s %s" % (timeStamp, ip, city)
+            
+        else:
+            print "Country does not occur in database"
+    
