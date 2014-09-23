@@ -371,7 +371,7 @@ def showCountryStats(country, verbose):
     
     cursor = cnx.cursor() # create cursor
     
-    sql = "SELECT country, COUNT(*) FROM %s WHERE ip = '%s'" % (tableName, country)
+    sql = "SELECT country, COUNT(*) FROM %s WHERE country = '%s'" % (tableName, country)
     cursor = executeSql(cursor, sql, verbose)
     for field, count in cursor:
         if count > 0:
@@ -388,4 +388,7 @@ def showCountryStats(country, verbose):
             
         else:
             print "Country does not occur in database"
+            
+    cursor.close()
+    disconnect(cnx, verbose) # disconnect from database
     
