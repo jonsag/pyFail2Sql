@@ -49,16 +49,26 @@ def usage(exitCode):
     print "\nUsage:"
     print "----------------------------------------"
     print "%s --setupdb [-v]" % sys.argv[0]
-    print "      Add required databases, tables and users"
+    print "      Initial 's'etup. Add required databases, tables and users"
     print "        Options: 'v'erbose output"
     print "    OR"
-    print "%s -w -n <name> -q <protocol> -p <port> -i <ip> [-v]" % sys.argv[0]
-    print "      Write log to database"
+    print "%s -w -n <name> -q <protocol> -p <port> -i <ip> -e <event> [-v]" % sys.argv[0]
+    print "      'W'rite log to database"
     print "        Arguments: 'n'ame of service"
-    print "                 'q' protocol, tcp, udp etc."
-    print "                 'p'ort"
-    print "                 'i'p number"
-    print "                 'e'vent causing this log"
+    print "                   'q' protocol, tcp, udp etc."
+    print "                   'p'ort"
+    print "                   'i'p number"
+    print "                   'e'vent causing this log"
+    print "        Options: 'v'erbose output"
+    print "    OR"
+    print "%s -s [-i <ip>]|[-n <service>]|[-c <country> [-v]" % sys.argv[0]
+    print "      View 's'tatistics from the database"
+    print "        Options: view extended info of 'i'p"
+    print "                 view extended info of services 'n'ame"
+    print "                 view extended info of 'c'ountry"
+    print "                 'v'erbose output"
+    print "%s -x [-v]" % sys.argv[0]
+    print "      View normal statisitcs and e'x'tended info on all items"
     print "        Options: 'v'erbose output"
     print "    OR"
     print "%s -h" % sys.argv[0]
@@ -315,7 +325,7 @@ def executeSql(cursor, sql, verbose):
             print "    OK"
     return cursor  
 
-def showStatistics(verbose):
+def showStatistics(extendedStats, verbose):
     stat = []
     statCount = 0
     
@@ -341,20 +351,19 @@ def showStatistics(verbose):
             temp.append(field)
         print
         stat.append(temp)
-        #for line in stat:
-        #    print line
-            
-    for searchField, text in fieldList:
-        for searchTerm in stat[statCount]:
-            showExtendedStats(searchField, searchTerm, verbose)
-        statCount += 1
+        
+    if extendedStats:
+        for searchField, text in fieldList:
+            for searchTerm in stat[statCount]:
+                showExtendedStats(searchField, searchTerm, verbose)
+            statCount += 1
         
     cursor.close()
     disconnect(cnx, verbose) # disconnect from database
     
 def showExtendedStats(searchField, searchTerm, verbose):
     cnx =connect(dbName, verbose) # connect to database
-    print "Statistics on %s:" % searchTerm
+    print "Statistics on %s %s:" % (searchField, searchTerm)
     print "------------------------------------------------------------------"
     
     cursor = cnx.cursor() # create cursor

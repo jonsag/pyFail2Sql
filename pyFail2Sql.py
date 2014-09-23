@@ -9,6 +9,7 @@ writeLog = False
 verbose = False
 setupDatabase = False
 statistics = False
+extendedStats = False
 
 name = ""
 protocol = ""
@@ -19,8 +20,8 @@ country = ""
 
 ############### handle arguments ###############
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'wsn:q:p:i:e:c:vh' ,
-    ['write', 'statistics', 'name=', 'protocol=', 'port=', 'ip=', 'event=', 'country=', 'setupdb', 'verbose', 'help'])
+    myopts, args = getopt.getopt(sys.argv[1:],'wsxn:q:p:i:e:c:vh' ,
+    ['write', 'statistics', 'extendedstatistics', 'name=', 'protocol=', 'port=', 'ip=', 'event=', 'country=', 'setupdb', 'verbose', 'help'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -29,6 +30,7 @@ if len(sys.argv) == 1: # no options passed
     onError(2, 2)
     
 for option, argument in myopts:
+    print "option: %s argument: %s" % (option, argument)
     if option in ('-w', '--write'):
         writeLog = True
     elif option in ('-n', '--name'):
@@ -46,7 +48,10 @@ for option, argument in myopts:
     elif option in ('-v', '--verbose'):
         verbose = True
     elif option in ('-s', '--statistics'):
-        statistics = True 
+        statistics = True
+    elif option in ('-x', '--extendedstatististics'):
+        statistics = True
+        extendedStats = True
     elif option in ('--setupdb'):
         setupDatabase = True   
     elif option in ('-h', '--help'):
@@ -64,14 +69,11 @@ if writeLog:
     result = doQuery(sql, verbose) # write to log
     
 if statistics and not ip and not country and not name:
-    showStatistics(verbose)
+    showStatistics(extendedStats, verbose)
 elif statistics and ip:
-    #showIpStats(ip, verbose)
     showExtendedStats("ip", ip, verbose)
 elif statistics and country:
-    #showCountryStats(country, verbose)
     showExtendedStats("country", country, verbose)
 elif statistics and name:
-    #showServiceStats(name, verbose)
     showExtendedStats("name", name, verbose)
     
