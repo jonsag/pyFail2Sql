@@ -316,14 +316,19 @@ def executeSql(cursor, sql, verbose):
     return cursor  
 
 def showStatistics(verbose):
+    stat = []
+    statCount = 0
+    
     cnx =connect(dbName, verbose) # connect to database
-    print "Statistics:\n"
+    print "Statistics:"
+    print "------------------------------------------------------------------"
 
     cursor = cnx.cursor() # create cursor
         
     fieldList = (["ip", "IP"], ["country", "Country"], ["name", "Service"])
         
     for field, text in fieldList:
+        temp = []
         print "%s:" % text
         sql = "SELECT %s, COUNT(*) FROM %s GROUP BY %s" % (field, tableName, field)            
         cursor = executeSql(cursor, sql, verbose)
@@ -333,45 +338,28 @@ def showStatistics(verbose):
             else:
                 word = "times"
             print "%s\tbanned: %s %s" % (field, count, word)
+            temp.append(field)
         print
-    
-    cursor.close()
-    disconnect(cnx, verbose) # disconnect from database
-
-def showIpStats(ip, verbose):
-    cnx =connect(dbName, verbose) # connect to database
-    print "Statistics on %s:\n" % ip
-    
-    cursor = cnx.cursor() # create cursor
+        stat.append(temp)
+        #for line in stat:
+        #    print line
+            
+    for searchField, text in fieldList:
+        for searchTerm in stat[statCount]:
+            showExtendedStats(searchField, searchTerm, verbose)
+        statCount += 1
         
-    sql = "SELECT ip, COUNT(*) FROM %s WHERE ip = '%s'" % (tableName, ip)
-    cursor = executeSql(cursor, sql, verbose)
-    for field, count in cursor:
-        if count > 0:
-            if count == 1:
-                word = "time"
-            else:
-                word = "times"
-            print "banned: %s %s" % (count, word)
-            
-            sql = "SELECT `timeStamp`, `city`, `country`, `countryCode` FROM %s WHERE ip = '%s'" % (tableName, ip)
-            cursor = executeSql(cursor, sql, verbose)
-            for timeStamp, city, country, countryCode in cursor:
-                print "%s\t%s, %s %s" % (timeStamp, city, country, countryCode)
-
-        else:
-            print "IP does not occur in database"
-
     cursor.close()
     disconnect(cnx, verbose) # disconnect from database
     
-def showCountryStats(country, verbose):
+def showExtendedStats(searchField, searchTerm, verbose):
     cnx =connect(dbName, verbose) # connect to database
-    print "Statistics on %s:\n" % country
+    print "Statistics on %s:" % searchTerm
+    print "------------------------------------------------------------------"
     
     cursor = cnx.cursor() # create cursor
     
-    sql = "SELECT country, COUNT(*) FROM %s WHERE country = '%s'" % (tableName, country)
+    sql = "SELECT %s, COUNT(*) FROM %s WHERE %s = '%s'" % (searchField, tableName, searchField, searchTerm)
     cursor = executeSql(cursor, sql, verbose)
     for field, count in cursor:
         if count > 0:
@@ -381,14 +369,14 @@ def showCountryStats(country, verbose):
                 word = "times"
             print "banned: %s %s" % (count, word)
             
-            sql = "SELECT `timeStamp`, `ip`, `city`, `countryCode` FROM %s WHERE country = '%s'" % (tableName, country)
+            sql = "SELECT `timeStamp`, `ip`, `city`, `country`, `countryCode` FROM %s WHERE %s = '%s'" % (tableName, searchField, searchTerm)
             cursor = executeSql(cursor, sql, verbose)
-            for timeStamp, ip, city, countryCode in cursor:
-                print "%s\t%s, %s, %s" % (timeStamp, ip, city, country)
-            
+            for timeStamp, ip, city, country, countryCode in cursor:
+                print "%s\t%s\t%s, %s" % (timeStamp, ip, city, country)
+            print
         else:
-            print "Country does not occur in database"
+            print "%s does not occur in database" % field
+            print
             
     cursor.close()
-    disconnect(cnx, verbose) # disconnect from database
-    
+    disconnect(cnx, verbose) # disconnect from database     
