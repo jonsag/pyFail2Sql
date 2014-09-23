@@ -384,7 +384,7 @@ def showCountryStats(country, verbose):
             sql = "SELECT `timeStamp`, `ip`, `city`, `countryCode` FROM %s WHERE country = '%s'" % (tableName, country)
             cursor = executeSql(cursor, sql, verbose)
             for timeStamp, ip, city, countryCode in cursor:
-                print "%s\t%s, %s %s" % (timeStamp, ip, city)
+                print "%s\t%s, %s, %s" % (timeStamp, ip, city, country)
             
         else:
             print "Country does not occur in database"
