@@ -10,6 +10,7 @@ verbose = False
 setupDatabase = False
 statistics = False
 extendedStats = False
+attack = False
 
 name = ""
 protocol = ""
@@ -17,11 +18,13 @@ port = ""
 ip = ""
 event = ""
 country = ""
+rootUser = ""
+rootPass = ""
 
 ############### handle arguments ###############
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'wsxn:q:p:i:e:c:vh' ,
-    ['write', 'statistics', 'extendedstatistics', 'name=', 'protocol=', 'port=', 'ip=', 'event=', 'country=', 'setupdb', 'verbose', 'help'])
+    myopts, args = getopt.getopt(sys.argv[1:],'wsxan:q:p:i:e:c:vh' ,
+    ['write', 'statistics', 'extendedstatistics', 'attack', 'name=', 'protocol=', 'port=', 'ip=', 'event=', 'country=', 'setupdb', 'rootuser=', 'rootpass=', 'verbose', 'help'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -30,7 +33,6 @@ if len(sys.argv) == 1: # no options passed
     onError(2, 2)
     
 for option, argument in myopts:
-    print "option: %s argument: %s" % (option, argument)
     if option in ('-w', '--write'):
         writeLog = True
     elif option in ('-n', '--name'):
@@ -52,13 +54,22 @@ for option, argument in myopts:
     elif option in ('-x', '--extendedstatististics'):
         statistics = True
         extendedStats = True
+    elif option in ('-a', '--attack'):
+        attack = True
     elif option in ('--setupdb'):
-        setupDatabase = True   
+        setupDatabase = True
+    elif option in ('--rootuser'):
+        rootUser = argument
+    elif option in ('--rootpass'):
+        rootPass = argument
     elif option in ('-h', '--help'):
         usage(0)
         
+if not setupDatabase and not writeLog and not statistics and not attack:
+    onError(3, 3)
+        
 if setupDatabase:
-    setupDB(verbose)    
+    setupDB(rootUser, rootPass, verbose)    
     
 if writeLog:
     log = (name, protocol, port, ip, event) # declare the log to write
@@ -77,3 +88,5 @@ elif statistics and country:
 elif statistics and name:
     showExtendedStats("name", name, verbose)
     
+if attack and ip:
+    scanIp(ip, verbose)

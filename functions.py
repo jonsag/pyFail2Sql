@@ -2,15 +2,14 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import ConfigParser, sys, os, urllib, datetime
+import ConfigParser, sys, os, urllib, socket
 import mysql.connector
 
 import xml.etree.ElementTree as ET
 
 from mysql.connector import errorcode
-
+from datetime import datetime
 from getpass import getpass
-from bsddb.test.test_all import verbose
 
 ##### read config file
 config = ConfigParser.ConfigParser()
@@ -36,12 +35,11 @@ def onError(errorCode, extra):
         usage(errorCode)
     elif errorCode == 3:
         print "    No program part chosen"
+        usage(errorCode)
     elif errorCode in (4, 5, 6, 8):
         print "    %s" % extra
         sys.exit(errorCode)
-    elif errorCode == 7:
-        print "    %s" % extra
-    elif errorCode == 9:
+    elif errorCode in (7, 9, 10, 11):
         print "    %s" % extra
 
 ##### some help
@@ -75,19 +73,66 @@ def usage(exitCode):
     print "      Prints this"
     sys.exit(exitCode)
     
-def setupDB(verbose): # setup the database with tables and users
-    if verbose:
-        print "--- Setting up database"
+def setupDB(rootUser, rootPass, verbose): # setup the database with tables and users
+    dbExists = False
+
+    tables = {} # these are the tables that will be created
+    tables[tableName] = (
+    "CREATE TABLE %s ("
+    "  `no` int(11) NOT NULL AUTO_INCREMENT,"
+    "  PRIMARY KEY (`no`)"
+    ") ENGINE=InnoDB" % tableName)
+    
+    #"  `timeStamp` TIMESTAMP,"
+    #"  `name` varchar(10),"
+    #"  `protocol` varchar(3),"
+    #"  `port` int(5),"
+    #"  `ip` varchar(15),"
+    #"  `event` varchar(15),"
+    #"  `longitude` varchar(10),"
+    #"  `latitude` varchar(10),"
+    #"  `countryCode` varchar(2),"
+    #"  `city` varchar(20),"
+    #"  `country` varchar(20),"
+    #"  `regionCode` varchar(3),"
+    #"  `region` varchar(20),"
+    
+    columns = []
+    for column, value in (["no", "int(11) NOT NULL AUTO_INCREMENT"],
+                          ["timeStamp", "TIMESTAMP"],
+                          ["name", "varchar(10)"],
+                          ["protocol", "varchar(3)"],
+                          ["port", "int(5)"],
+                          ["ip", "varchar(15)]"],
+                          ["event", "varchar(15)"],
+                          ["longitude", "varchar(10)"],
+                          ["latitude", "varchar(10)"],
+                          ["countryCode", "varchar(2)"],
+                          ["city", "varchar(20)"],
+                          ["country", "varchar(20)"],
+                          ["regionCode", "varchar(3)"],
+                          ["region", "varchar(20)"]):
         
-    dbUser = raw_input("User with rights to create database: ") # get user
-    dbPass = getpass("Password: ") # get user's passsword
+        columns.append(["%s" % tableName, "ALTER TABLE %s ADD `%s` %s" % (tableName, column, value)])
+    
+    for table, sql in columns:
+        print "%s - %s" % (table, sql)
+        #print line
     
     if verbose:
-        print "Username: %s\nPassword: %s" % (dbUser, dbPass)
+        print "--- Setting up database"
+    
+    if not rootUser:
+        rootUser = raw_input("User with rights to create database: ") # get user
+    if not rootPass:
+        rootPass = getpass("Password: ") # get user's passsword
+    
+    if verbose:
+        print "Username: %s\nPassword: %s" % (rootUser, rootPass)
         print "--- Connecting to db server %s..." % dbHost
-        
-    try: # concect to database
-        cnx = mysql.connector.connect(user = dbUser, password = dbPass, host = dbHost, port = dbPort)
+    
+    try: # connect to database
+        cnx = mysql.connector.connect(user = rootUser, password = rootPass, host = dbHost, port = dbPort)
     except mysql.connector.Error as err: # get errors
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             onError(4, "Something is wrong with your user name or password\n    Have you run with argument '--setupdb' yet?")
@@ -98,38 +143,42 @@ def setupDB(verbose): # setup the database with tables and users
         
     if verbose:
         print "    OK"
-        print "--- Creating database %s..." % dbName
+        print "--- Creating database %s with all tables we need..." % dbName
         
     cursor = cnx.cursor() # construct cursor to use
     
-    tables = {} # these are the tables that will be created
-    tables[tableName] = (
-    "CREATE TABLE %s ("
-    "  `no` int(11) NOT NULL AUTO_INCREMENT,"
-    "  `timeStamp` TIMESTAMP,"
-    "  `name` varchar(10),"
-    "  `protocol` varchar(3),"
-    "  `port` int(5),"
-    "  `ip` varchar(15),"
-    "  `event` varchar(15),"
-    "  `longitude` varchar(10),"
-    "  `latitude` varchar(10),"
-    "  `countryCode` varchar(2),"
-    "  `city` varchar(20),"
-    "  `country` varchar(20),"
-    "  `regionCode` varchar(3),"
-    "  `region` varchar(20),"
-    "  PRIMARY KEY (`no`)"
-    ") ENGINE=InnoDB" % tableName)
-    
-    sql = "CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(dbName) # the sql for creating tables
+    sql = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '%s'" % dbName
     if verbose:
+        print "--- Checking if database already exists"
         print "+++ sql = %s" % sql
     try: # execute the sql
         cursor.execute(sql)
     except mysql.connector.Error as err:
-        onError(7, "Failed creating database: {}".format(err))
-        
+        onError(10, "Failed checking if database exists: {}".format(err))
+    
+    result = cursor.fetchall()
+    for line in result:
+        if line[0] == dbName:
+            if verbose:
+                print "--- Database exists"
+                dbExists = True
+    if not dbExists:
+        if verbose:
+            print "--- Database does not exist. Creating it..." 
+    
+        sql = "CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(dbName) # the sql for creating tables
+        if verbose:
+            print "+++ sql = %s" % sql
+        try: # execute the sql
+            cursor.execute(sql)
+        except mysql.connector.Error as err:
+            onError(7, "Failed creating database: {}".format(err))
+    
+        if verbose:
+            print "    OK"
+
+    if verbose:
+        print "--- Setting database..."        
     try:
         cnx.database = dbName
     except mysql.connector.Error as err:
@@ -137,7 +186,7 @@ def setupDB(verbose): # setup the database with tables and users
             create_database(cursor)
             cnx.database = dbName
         else:
-            onError(8, err)
+                onError(8, err)
     
     if verbose:
         print "    OK"
@@ -152,16 +201,13 @@ def setupDB(verbose): # setup the database with tables and users
             cursor.execute(ddl)
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-                print "  already exists."
+                onError(11, "Table %s already exists" % name)
             else:
                 onError(9, err.msg)
         else:
             if verbose:
                 print "    OK"
                 print "--- Creating user %s..." % dbUser
-
-    dbUser = config.get('mysql','dbUser') # get the normal user
-    dbPass = config.get('mysql','dbPass') # get the normal user's password
             
     sql = "CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'" % (dbUser, dbPass) # sql for creating user
     if verbose:
@@ -388,4 +434,65 @@ def showExtendedStats(searchField, searchTerm, verbose):
             print
             
     cursor.close()
-    disconnect(cnx, verbose) # disconnect from database     
+    disconnect(cnx, verbose) # disconnect from database  
+    
+def scanIp(ip, verbose):
+    openPorts = []
+    startPort = int(config.get('attack','startPort'))
+    endPort = int(config.get('attack','endPort'))
+    
+    # Print a nice banner with information on which host we are about to scan
+    print "Scanning remote ip %s from port %s to %s..." %  (ip, startPort, endPort)
+
+    # Check what time the scan started
+    startTime = datetime.now()
+    if verbose:
+        print "--- Start time: %s" % startTime
+    # Using the range function to specify ports (here it will scans all ports between 1 and 1024)
+
+    # We also put in some error handling for catching errors
+
+    try:
+        for port in range(startPort, endPort):
+            if verbose:
+                print "--- Trying port %s" % port
+            else:
+                sys.stdout.write("%s " % port)
+                sys.stdout.flush()
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex((ip, port))
+            if result == 0:
+                if verbose:
+                    print "Port {}: \t Open".format(port)
+                else:
+                    print "\nPort {}: \t Open".format(port)
+                openPorts.append(port)
+            sock.close()
+    except KeyboardInterrupt:
+        print "*** You pressed Ctrl+C"
+        sys.exit()
+    except socket.gaierror:
+        print '*** Hostname could not be resolved. Exiting'
+        sys.exit()
+    except socket.error:
+        print "*** Couldn't connect to server"
+        sys.exit()
+
+    # Checking the time again
+    endTime = datetime.now()
+    if verbose:
+        print "Finished time: %s" % endTime
+
+    # Calculates the difference of time, to see how long it took to run the script
+    totalTime =  endTime - startTime
+
+    # Printing the information to screen
+    print '\nScanning completed in: ', totalTime
+    
+    if openPorts:
+        print "\nThese ports were open:"
+        for openPort in openPorts:
+            print openPort
+    else:
+        print "\nCould not find any open ports"
+        
