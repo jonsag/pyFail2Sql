@@ -11,6 +11,11 @@ from mysql.connector import errorcode
 from datetime import datetime
 from getpass import getpass
 
+from libnmap.process import NmapProcess
+from libnmap.parser import NmapParser, NmapParserException
+
+from time import sleep
+
 ##### read config file
 config = ConfigParser.ConfigParser()
 config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__))) # read config file
@@ -72,6 +77,12 @@ def usage(exitCode):
     print "%s -h" % sys.argv[0]
     print "      Prints this"
     sys.exit(exitCode)
+    
+def create_database(cursor):
+    try:
+        cursor.execute("CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(dbName))
+    except mysql.connector.Error as err:
+        onError(7, "Failed creating database: {}".format(err))
     
 def setupDB(rootUser, rootPass, verbose): # setup the database with tables and users
     dbExists = False
@@ -448,8 +459,8 @@ def scanIp(ip, verbose):
     startTime = datetime.now()
     if verbose:
         print "--- Start time: %s" % startTime
+        
     # Using the range function to specify ports (here it will scans all ports between 1 and 1024)
-
     # We also put in some error handling for catching errors
 
     try:
@@ -496,3 +507,66 @@ def scanIp(ip, verbose):
     else:
         print "\nCould not find any open ports"
         
+def nmapScan(targets, options, verbose):
+    parsed = None
+    nmproc = NmapProcess(targets, options)
+    
+    #rc = nmproc.run()
+    rc = nmproc.run_background()
+    
+    #if rc != 0:
+    #    print("nmap scan failed: {0}".format(nmproc.stderr))
+    #print(type(nmproc.stdout))
+    
+    while nmproc.is_running():
+        print("Nmap Scan running: ETC: {0} DONE: {1}%".format(nmproc.etc, nmproc.progress))
+        sleep(2)
+
+    print("rc: {0} output: {1}".format(nmproc.rc, nmproc.summary))
+
+    try:
+        nmap_report = NmapParser.parse(nmproc.stdout)
+    except NmapParserException as e:
+        print("Exception raised while parsing scan: {0}".format(e.msg))
+
+    return nmap_report
+
+def printScan(nmap_report, verbose):
+    print("\nStarting Nmap {0} ( http://nmap.org ) at {1}".format(
+        nmap_report.version,
+        nmap_report.started))
+
+    for host in nmap_report.hosts:
+    
+        
+        if len(host.hostnames):
+            tmp_host = host.hostnames.pop()
+        else:
+            tmp_host = host.address
+
+        print("Nmap scan report for {0} ({1})".format(tmp_host,
+                                                      host.address))
+        print("\nHost is {0}.".format(host.status))
+        print("\n  PORT     STATE         SERVICE      VERSION")
+
+        for serv in host.services:
+            pserv = "{0:>5s}/{1:3s}  {2:12s}  {3:10s}  {4}".format(str(serv.port),
+                                                                 serv.protocol,
+                                                                 serv.state,
+                                                                 serv.service,
+                                                                 serv.servicefp)
+            if len(serv.banner):
+                pserv += " ({0})".format(serv.banner)
+            print(pserv)
+        
+    print("\n{}".format(nmap_report.summary))
+
+def nmap(ip, verbose):
+    startPort = int(config.get('attack','startPort'))
+    endPort = int(config.get('attack','endPort'))
+    
+    report = nmapScan(ip, "-sV -p %s-%s" % (startPort, endPort), verbose)
+    if report:
+        printScan(report, verbose)
+    else:
+        print("No results returned")

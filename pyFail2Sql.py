@@ -89,4 +89,5 @@ elif statistics and name:
     showExtendedStats("name", name, verbose)
     
 if attack and ip:
-    scanIp(ip, verbose)
+    #scanIp(ip, verbose)
+    nmap(ip, verbose)
