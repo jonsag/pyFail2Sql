@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import ConfigParser, sys, os, urllib, socket
+import ConfigParser, sys, os, urllib2, socket
 import mysql.connector
 
 import xml.etree.ElementTree as ET
@@ -248,64 +248,69 @@ def setupDB(rootUser, rootPass, verbose): # setup the database with tables and u
     sys.exit(0)
     
 def lookupIP(ip, verbose): # get geographical data for ip
-    countryCode = ""
-    country = ""
-    regionCode = ""
-    region = ""
-    city = ""
-    zipCode = ""
-    latitude = ""
-    longitude = ""
-    metroCode = ""
-    areaCode = ""
+    countryCode = "na"
+    country = "na"
+    regionCode = "na"
+    region = "na"
+    city = "na"
+    zipCode = "na"
+    latitude = "na"
+    longitude = "na"
+    metroCode = "na"
+    areaCode = "na"
     
-    response = urllib.urlopen("http://freegeoip.net/xml/%s" % ip).read() # get xml from freegeoip
-    if verbose:
-        print "--- Response:\n%s" % response
+    response = urllib2.urlopen("http://freegeoip.net/xml/%s" % ip, timeout = 5).read() # get xml from freegeoip
     
-    xmlRoot = ET.fromstring(response) # read xml
-    for xmlChild in xmlRoot:
+    if response:
+        if verbose:
+            print "--- Response:\n%s" % response
+    
+        xmlRoot = ET.fromstring(response) # read xml
+        for xmlChild in xmlRoot:
 
-        if 'CountryCode' in xmlChild.tag:
-            countryCode = xmlChild.text
+            if 'CountryCode' in xmlChild.tag:
+                countryCode = xmlChild.text
+                if verbose:
+                    print "--- Country code: %s" % countryCode
+            elif 'CountryName' in xmlChild.tag:
+                country = xmlChild.text
+                if verbose:
+                    print "--- Country: %s" % country
+            elif 'RegionCode' in xmlChild.tag:
+                regionCode = xmlChild.text
+                if verbose:
+                    print "--- Region code: %s" % regionCode
+            elif 'RegionName' in xmlChild.tag:
+                region = xmlChild.text
+                if verbose:
+                    print "--- Region: %s" % region
+            elif 'City' in xmlChild.tag:
+                city = xmlChild.text
+                if verbose:
+                    print "--- City: %s" % city
+            elif 'ZipCode' in xmlChild.tag:
+                zipCode = xmlChild.text
+                if verbose:
+                    print "--- Zip code: %s" % zipCode
+            elif 'Latitude' in xmlChild.tag:
+                latitude = xmlChild.text
+                if verbose:
+                    print "--- Latitude: %s" % latitude
+            elif 'Longitude' in xmlChild.tag:
+                longitude = xmlChild.text
+                if verbose:
+                    print "--- Longitude: %s" % longitude
+            elif 'MetroCode' in xmlChild.tag:
+                metroCode = xmlChild.text
+                if verbose:
+                    print "--- Metro code: %s" % metroCode
+            elif 'AreaCode' in xmlChild.tag:
+                areaCode = xmlChild.text
+                if verbose:
+                    print "--- Area code: %s" % areaCode
+        else:
             if verbose:
-                print "--- Country code: %s" % countryCode
-        elif 'CountryName' in xmlChild.tag:
-            country = xmlChild.text
-            if verbose:
-                print "--- Country: %s" % country
-        elif 'RegionCode' in xmlChild.tag:
-            regionCode = xmlChild.text
-            if verbose:
-                print "--- Region code: %s" % regionCode
-        elif 'RegionName' in xmlChild.tag:
-            region = xmlChild.text
-            if verbose:
-                print "--- Region: %s" % region
-        elif 'City' in xmlChild.tag:
-            city = xmlChild.text
-            if verbose:
-                print "--- City: %s" % city
-        elif 'ZipCode' in xmlChild.tag:
-            zipCode = xmlChild.text
-            if verbose:
-                print "--- Zip code: %s" % zipCode
-        elif 'Latitude' in xmlChild.tag:
-            latitude = xmlChild.text
-            if verbose:
-                print "--- Latitude: %s" % latitude
-        elif 'Longitude' in xmlChild.tag:
-            longitude = xmlChild.text
-            if verbose:
-                print "--- Longitude: %s" % longitude
-        elif 'MetroCode' in xmlChild.tag:
-            metroCode = xmlChild.text
-            if verbose:
-                print "--- Metro code: %s" % metroCode
-        elif 'AreaCode' in xmlChild.tag:
-            areaCode = xmlChild.text
-            if verbose:
-                print "--- Area code: %s" % areaCode
+                print "Could not get info"
     
     ipInfo = longitude, latitude, countryCode, city, country, regionCode, region
     return ipInfo
