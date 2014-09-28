@@ -248,6 +248,7 @@ def setupDB(rootUser, rootPass, verbose): # setup the database with tables and u
     sys.exit(0)
     
 def lookupIP(ip, verbose): # get geographical data for ip
+    response = ""
     countryCode = "na"
     country = "na"
     regionCode = "na"
