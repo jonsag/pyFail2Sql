@@ -259,8 +259,12 @@ def lookupIP(ip, verbose): # get geographical data for ip
     metroCode = "na"
     areaCode = "na"
     
-    response = urllib2.urlopen("http://freegeoip.net/xml/%s" % ip, timeout = 5).read() # get xml from freegeoip
-    
+    try:
+        response = urllib2.urlopen("http://freegeoip.net/xml/%s" % ip, timeout = 5).read() # get xml from freegeoip
+    except urllib2.URLError, e:
+        if verbose:
+            print "There was an error: %r" % e
+        
     if response:
         if verbose:
             print "--- Response:\n%s" % response
