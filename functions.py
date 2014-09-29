@@ -3,7 +3,7 @@
 # Encoding: UTF-8
 
 import ConfigParser, sys, os, urllib2, socket
-import mysql.connector
+import mysql.connector, json
 
 import xml.etree.ElementTree as ET
 
@@ -15,6 +15,7 @@ from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser, NmapParserException
 
 from time import sleep
+from pprint import pprint
 
 ##### read config file
 config = ConfigParser.ConfigParser()
@@ -29,6 +30,10 @@ tableName = config.get('mysql','tableName')
 dbUser = config.get('mysql','dbUser')
 dbPass = config.get('mysql','dbPass')
 
+freegeoipAPI = config.get('geoLookup', 'freeGeoIpAPI')  
+telizeAPI = config.get('geoLookup', 'telizeAPI')
+timeOut = int(config.get('geoLookup', 'timeOut'))
+
 ##### what to do on errors
 def onError(errorCode, extra):
     print "\n*** Error:"
@@ -41,7 +46,7 @@ def onError(errorCode, extra):
     elif errorCode == 3:
         print "    No program part chosen"
         usage(errorCode)
-    elif errorCode in (4, 5, 6, 8):
+    elif errorCode in (4, 5, 6, 8, 12, 13):
         print "    %s" % extra
         sys.exit(errorCode)
     elif errorCode in (7, 9, 10, 11):
@@ -247,7 +252,56 @@ def setupDB(rootUser, rootPass, verbose): # setup the database with tables and u
     disconnect(cnx, verbose) # dosconnect from database
     sys.exit(0)
     
+def siteIsUp(api, verbose):
+    responseCode = ""
+    siteUp = False
+    
+    if verbose:
+        print "--- Checking if %s is up..." % api
+        
+    try:
+        responseCode = urllib2.urlopen(api, timeout = timeOut).getcode()
+    except urllib2.URLError, e:
+        if verbose:
+            print "*** There was an error: %r" % e
+            
+    if responseCode and verbose:
+        print "--- Response code: %s" % responseCode
+        
+    if responseCode == 200:
+        siteUp = True
+        if verbose:
+            print "--- Site is up"
+    else:
+        if verbose:
+            print "*** Site is down"
+    return siteUp
+
 def lookupIP(ip, verbose): # get geographical data for ip
+    if siteIsUp(freegeoipAPI, verbose):
+        if verbose:
+            print "--- Getting geographical information from %s" % freegeoipAPI
+        ipInfo = freegeoipLookup(ip, verbose)
+    elif siteIsUp(telizeAPI, verbose):
+        if verbose:
+            print "--- Getting geographical information from %s" % telizeAPI
+        ipInfo = telizeLookup(ip, verbose) 
+    else:
+        if verbose:
+            print "*** Returning empty values"
+        countryCode = "na"
+        country = "na"
+        regionCode = "na"
+        region = "na"
+        city = "na"
+        latitude = "na"
+        longitude = "na"
+        geoSource = "na"
+        ipInfo = longitude, latitude, countryCode, city, country, regionCode, region, geoSource
+        
+    return ipInfo
+
+def telizeLookup(ip, verbose):
     response = ""
     countryCode = "na"
     country = "na"
@@ -259,12 +313,130 @@ def lookupIP(ip, verbose): # get geographical data for ip
     longitude = "na"
     metroCode = "na"
     areaCode = "na"
+    geoSource = "freegeoip.net"
     
     try:
-        response = urllib2.urlopen("http://freegeoip.net/xml/%s" % ip, timeout = 5).read() # get xml from freegeoip
+        response = urllib2.urlopen("%s%s" % (telizeAPI, ip), timeout = timeOut).read() # get xml from freegeoip
     except urllib2.URLError, e:
         if verbose:
-            print "There was an error: %r" % e
+            print "*** There was an error: %r" % e
+        
+    if response:
+        if verbose:
+            print "--- Response:\n%s" % response
+        data = json.loads(response)
+            
+        try: # longitude
+            longitude = data['longitude']
+            if verbose:
+                print "--- Longitude: %s" % longitude
+        except KeyError:
+            if verbose:
+                print "*** Longitude not retreived"
+        try: # latitude
+            latitude = data['latitude']
+            if verbose:
+                print "--- Latitude: %s" % latitude
+        except KeyError:
+            if verbose:
+                print "*** Latitude not retreived"
+        try: # country code
+            countryCode = data['country_code']
+            if verbose:
+                print "--- Country code: %s" % countryCode
+        except KeyError:
+            if verbose:
+                print "*** Country code not retreived"
+        try: # 3-letter country code
+            countryCode3 = data['country_code3']
+            if verbose:
+                print "--- 3-letter country code: %s" % countryCode3
+        except KeyError:
+            if verbose:
+                print "*** 3-letter country code not retreived"
+        try: # country
+            country = data['country']
+            if verbose:
+                print "--- Country: %s" % country
+        except KeyError:
+            if verbose:
+                print "*** Country not retreived"
+        try: # ISP
+            isp = data['isp']
+            if verbose:
+                print "--- ISP: %s" % isp
+        except KeyError:
+            if verbose:
+                print "*** ISP not retreived"
+        try: # continent code
+            continentCode = data['continent_code']
+            if verbose:
+                print "--- Continent code: %s" % continentCode
+        except KeyError:
+            if verbose:
+                print "*** Continent code not retreived"
+        try: # city
+            city = data['city']
+            if verbose:
+                print "--- City: %s" % city
+        except KeyError:
+            if verbose:
+                print "*** City not retreived"
+        try: # time zone
+            timeZone = data['timezone']
+            if verbose:
+                print "--- Time zone: %s" % timeZone
+        except KeyError:
+            if verbose:
+                print "*** Time zone not retreived"
+        try: # region
+            region = data['region']
+            if verbose:
+                print "--- Region: %s" % region
+        except KeyError:
+            if verbose:
+                print "*** Region not retreived"
+        try: # region code
+            regionCode = data['region_code']
+            if verbose:
+                print "--- Region code: %s" % regionCode
+        except KeyError:
+            if verbose:
+                print "*** Region code not retreived"
+        try: # offset
+            offset = data['offset']
+            if verbose:
+                print "--- Offset: %s" % offset
+        except KeyError:
+            if verbose:
+                print "*** Offset not retreived"
+    else:
+        if verbose:
+            print "*** Could not get a response"        
+    
+    ipInfo = longitude, latitude, countryCode, city, country, regionCode, region, geoSource
+
+    return ipInfo
+
+def freegeoipLookup(ip, verbose):
+    response = ""
+    countryCode = "na"
+    country = "na"
+    regionCode = "na"
+    region = "na"
+    city = "na"
+    zipCode = "na"
+    latitude = "na"
+    longitude = "na"
+    metroCode = "na"
+    areaCode = "na"
+    geoSource = "freegeoip.net"
+    
+    try:
+        response = urllib2.urlopen("%s%s" % (freegeoipAPI, ip), timeout = timeOut).read() # get xml from freegeoip
+    except urllib2.URLError, e:
+        if verbose:
+            print "*** There was an error: %r" % e
         
     if response:
         if verbose:
@@ -317,12 +489,13 @@ def lookupIP(ip, verbose): # get geographical data for ip
             if verbose:
                 print "Could not get info"
     
-    ipInfo = longitude, latitude, countryCode, city, country, regionCode, region
+    ipInfo = longitude, latitude, countryCode, city, country, regionCode, region, geoSource
+
     return ipInfo
 
 def logSql(log, ipInfo, verbose): # create sql for the log
     name, protocol, port, ip, event = log
-    longitude, latitude, countryCode, city, country, regionCode, region = ipInfo
+    longitude, latitude, countryCode, city, country, regionCode, region, geoSource = ipInfo
     sql = (
         "INSERT INTO %s"
         " (`name`, `protocol`, `port`, `ip`, `event`, `longitude`, `latitude`, `countryCode`, `city`, `country`, `regionCode`, `region`)"

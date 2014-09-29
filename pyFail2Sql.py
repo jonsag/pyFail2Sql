@@ -11,6 +11,7 @@ setupDatabase = False
 statistics = False
 extendedStats = False
 attack = False
+lookup = False
 
 name = ""
 protocol = ""
@@ -23,8 +24,10 @@ rootPass = ""
 
 ############### handle arguments ###############
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'wsxan:q:p:i:e:c:vh' ,
-    ['write', 'statistics', 'extendedstatistics', 'attack', 'name=', 'protocol=', 'port=', 'ip=', 'event=', 'country=', 'setupdb', 'rootuser=', 'rootpass=', 'verbose', 'help'])
+    myopts, args = getopt.getopt(sys.argv[1:],'wsxaln:q:p:i:e:c:vh' ,
+    ['write', 'statistics', 'extendedstatistics', 'attack', 'lookup'
+     'name=', 'protocol=', 'port=', 'ip=', 'event=', 'country=',
+     'setupdb', 'rootuser=', 'rootpass=', 'verbose', 'help'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -56,6 +59,8 @@ for option, argument in myopts:
         extendedStats = True
     elif option in ('-a', '--attack'):
         attack = True
+    elif option in ('-l', '--lookup'):
+        lookup = True
     elif option in ('--setupdb'):
         setupDatabase = True
     elif option in ('--rootuser'):
@@ -65,7 +70,7 @@ for option, argument in myopts:
     elif option in ('-h', '--help'):
         usage(0)
         
-if not setupDatabase and not writeLog and not statistics and not attack:
+if not setupDatabase and not writeLog and not statistics and not attack and not lookup:
     onError(3, 3)
         
 if setupDatabase:
@@ -91,3 +96,22 @@ elif statistics and name:
 if attack and ip:
     #scanIp(ip, verbose)
     nmap(ip, verbose)
+elif attack and not ip:
+    onError(12, "Option -a requires -i <ip>")
+    
+if lookup and ip:
+    ipInfo = lookupIP(ip, verbose)
+    longitude, latitude, countryCode, city, country, regionCode, region, geoSource = ipInfo
+    print "\nResult:"
+    print "-" * 60
+    print "--- Country code: %s" % countryCode
+    print "--- Country: %s" % country
+    print "--- Region code: %s" % regionCode
+    print "--- Region: %s" % region
+    print "--- City: %s" % city
+    print "--- Latitude: %s" % latitude
+    print "--- Longitude: %s" % longitude
+    print "--- Geo source: %s" % geoSource
+
+elif lookup and not ip:
+    onError(13, "Option -l requires -i <ip>")
