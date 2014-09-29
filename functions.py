@@ -99,20 +99,6 @@ def setupDB(rootUser, rootPass, verbose): # setup the database with tables and u
     "  PRIMARY KEY (`no`)"
     ") ENGINE=InnoDB" % tableName)
     
-    #"  `timeStamp` TIMESTAMP,"
-    #"  `name` varchar(10),"
-    #"  `protocol` varchar(3),"
-    #"  `port` int(5),"
-    #"  `ip` varchar(15),"
-    #"  `event` varchar(15),"
-    #"  `longitude` varchar(10),"
-    #"  `latitude` varchar(10),"
-    #"  `countryCode` varchar(2),"
-    #"  `city` varchar(20),"
-    #"  `country` varchar(20),"
-    #"  `regionCode` varchar(3),"
-    #"  `region` varchar(20),"
-    
     columns = []
     for column, value in (["no", "int(11) NOT NULL AUTO_INCREMENT"],
                           ["timeStamp", "TIMESTAMP"],
@@ -127,7 +113,8 @@ def setupDB(rootUser, rootPass, verbose): # setup the database with tables and u
                           ["city", "varchar(20)"],
                           ["country", "varchar(20)"],
                           ["regionCode", "varchar(3)"],
-                          ["region", "varchar(20)"]):
+                          ["region", "varchar(20)"],
+                          ["geoSource", "varchar(30)"]):
         
         columns.append(["%s" % tableName, "ALTER TABLE %s ADD `%s` %s" % (tableName, column, value)])
     
@@ -289,30 +276,15 @@ def lookupIP(ip, verbose): # get geographical data for ip
     else:
         if verbose:
             print "*** Returning empty values"
-        countryCode = "na"
-        country = "na"
-        regionCode = "na"
-        region = "na"
-        city = "na"
-        latitude = "na"
-        longitude = "na"
-        geoSource = "na"
-        ipInfo = longitude, latitude, countryCode, city, country, regionCode, region, geoSource
+        ipInfo = {'longitude': "na", 'latitude': "na", 'countryCode': "na",
+              'city': "na", 'country': "na", 'regionCode': "na", 'region': "na",
+              'geoSource': "na",'offset': "na", 'timeZone': "na",
+              'countryCode3': "na", 'isp': "na",'zipCode': "na",
+              'metroCode': "na", 'areaCode': "na"}
         
     return ipInfo
 
 def telizeLookup(ip, verbose):
-    response = ""
-    countryCode = "na"
-    country = "na"
-    regionCode = "na"
-    region = "na"
-    city = "na"
-    zipCode = "na"
-    latitude = "na"
-    longitude = "na"
-    metroCode = "na"
-    areaCode = "na"
     geoSource = "freegeoip.net"
     
     try:
@@ -331,6 +303,7 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- Longitude: %s" % longitude
         except KeyError:
+            longitude = "na"
             if verbose:
                 print "*** Longitude not retreived"
         try: # latitude
@@ -338,6 +311,7 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- Latitude: %s" % latitude
         except KeyError:
+            latitude = "na"
             if verbose:
                 print "*** Latitude not retreived"
         try: # country code
@@ -345,6 +319,7 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- Country code: %s" % countryCode
         except KeyError:
+            countryCode = "na"
             if verbose:
                 print "*** Country code not retreived"
         try: # 3-letter country code
@@ -352,6 +327,7 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- 3-letter country code: %s" % countryCode3
         except KeyError:
+            countryCode3 = "na"
             if verbose:
                 print "*** 3-letter country code not retreived"
         try: # country
@@ -359,6 +335,7 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- Country: %s" % country
         except KeyError:
+            country = "na"
             if verbose:
                 print "*** Country not retreived"
         try: # ISP
@@ -366,6 +343,7 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- ISP: %s" % isp
         except KeyError:
+            isp = "na"
             if verbose:
                 print "*** ISP not retreived"
         try: # continent code
@@ -373,6 +351,7 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- Continent code: %s" % continentCode
         except KeyError:
+            continentCode = "na"
             if verbose:
                 print "*** Continent code not retreived"
         try: # city
@@ -380,6 +359,7 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- City: %s" % city
         except KeyError:
+            city = "na"
             if verbose:
                 print "*** City not retreived"
         try: # time zone
@@ -387,6 +367,7 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- Time zone: %s" % timeZone
         except KeyError:
+            timeZone = "na"
             if verbose:
                 print "*** Time zone not retreived"
         try: # region
@@ -394,6 +375,7 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- Region: %s" % region
         except KeyError:
+            region = "na"
             if verbose:
                 print "*** Region not retreived"
         try: # region code
@@ -401,6 +383,7 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- Region code: %s" % regionCode
         except KeyError:
+            regionCode = "na"
             if verbose:
                 print "*** Region code not retreived"
         try: # offset
@@ -408,14 +391,53 @@ def telizeLookup(ip, verbose):
             if verbose:
                 print "--- Offset: %s" % offset
         except KeyError:
+            offset = "na"
             if verbose:
                 print "*** Offset not retreived"
+        try: # area code
+            areaCode = data['area_code']
+            if verbose:
+                print "--- Area code: %s" % areaCode
+        except KeyError:
+            areaCode = "na"
+            if verbose:
+                print "*** Area code not retreived"
+        try: # postal code
+            postalCode = data['postal_code']
+            if verbose:
+                print "--- postal code: %s" % postalCode
+        except KeyError:
+            postalCode = "na"
+            if verbose:
+                print "*** Postal code not retreived"
+        try: # postal code
+            dmaCode = data['dma_code']
+            if verbose:
+                print "--- postal code: %s" % dmaCode
+        except KeyError:
+            dmaCode = "na"
+            if verbose:
+                print "*** DMA code not retreived"
+        try: # asn
+            asn = data['asn']
+            if verbose:
+                print "--- postal code: %s" % asn
+        except KeyError:
+            asn = "na"
+            if verbose:
+                print "*** ASN not retreived"
+                
     else:
         if verbose:
             print "*** Could not get a response"        
-    
-    ipInfo = longitude, latitude, countryCode, city, country, regionCode, region, geoSource
 
+    ipInfo = {'longitude': longitude, 'latitude': latitude, 'countryCode': countryCode,
+              'city': city, 'country': country, 'regionCode': regionCode, 'region': region,
+              'geoSource': geoSource,'offset': offset, 'timeZone': timeZone,
+              'countryCode3': countryCode3, 'isp': isp, 'continentCode': continentCode,
+              'areaCode': areaCode, 'postalCode': postalCode, 'dmaCode': dmaCode,
+              'asn': asn}
+    
     return ipInfo
 
 def freegeoipLookup(ip, verbose):
@@ -489,19 +511,26 @@ def freegeoipLookup(ip, verbose):
             if verbose:
                 print "Could not get info"
     
-    ipInfo = longitude, latitude, countryCode, city, country, regionCode, region, geoSource
-
+    ipInfo = {'longitude': longitude, 'latitude': latitude, 'countryCode': countryCode,
+              'city': city, 'country': country, 'regionCode': regionCode, 'region': region,
+              'geoSource': geoSource, 'zipCode': zipCode,
+              'metroCode': metroCode, 'areaCode': areaCode}
+    
     return ipInfo
 
 def logSql(log, ipInfo, verbose): # create sql for the log
     name, protocol, port, ip, event = log
-    longitude, latitude, countryCode, city, country, regionCode, region, geoSource = ipInfo
     sql = (
         "INSERT INTO %s"
-        " (`name`, `protocol`, `port`, `ip`, `event`, `longitude`, `latitude`, `countryCode`, `city`, `country`, `regionCode`, `region`)"
+        " (`name`, `protocol`, `port`, `ip`, `event`, `longitude`, `latitude`,"
+        "`countryCode`, `city`, `country`, `regionCode`,"
+        "`region`, `geoSource`)"
         " VALUES"
-        " ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
-        % (tableName, name, protocol, port, ip, event, longitude, latitude, countryCode, city, country, regionCode, region))
+        " ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
+        % (tableName, name, protocol, port, ip, event, ipInfo['longitude'], ipInfo['latitude'],
+           ipInfo['countryCode'], ipInfo['city'], ipInfo['country'], ipInfo['regionCode'],
+           ipInfo['region'], ipInfo['geoSource']))
+           
     if verbose:
         print "+++ sql = %s" % sql
     return sql
@@ -753,3 +782,43 @@ def nmap(ip, verbose):
         printScan(report, verbose)
     else:
         print("No results returned")
+
+def displayIpInfo(ipInfo, verbose):
+    if ipInfo.has_key('continentCode'):
+        print "--- Continent code: %s" % ipInfo['continentCode']
+    if ipInfo.has_key('countryCode'):
+        print "--- Country code: %s" % ipInfo['countryCode']
+    if ipInfo.has_key('countryCode3'):
+        print "--- 3-letter country code: %s" % ipInfo['countryCode3']
+    if ipInfo.has_key('country'):
+        print "--- Country: %s" % ipInfo['country']
+    if ipInfo.has_key('regionCode'):
+        print "--- Region code: %s" % ipInfo['regionCode']
+    if ipInfo.has_key('region'):
+        print "--- Region: %s" % ipInfo['region']
+    if ipInfo.has_key('city'):
+        print "--- City: %s" % ipInfo['city']
+    if ipInfo.has_key('latitude'):
+        print "--- Latitude: %s" % ipInfo['latitude']
+    if ipInfo.has_key('longitude'):
+        print "--- Longitude: %s" % ipInfo['longitude']
+    if ipInfo.has_key('isp'):
+        print "--- ISP: %s" % ipInfo['isp']
+    if ipInfo.has_key('timeZone'):
+        print "--- Time Zone: %s" % ipInfo['timeZone']
+    if ipInfo.has_key('offset'):
+        print "--- Offset: %s" % ipInfo['offset']
+    if ipInfo.has_key('zipCode'):
+        print "--- Zip code: %s" % ipInfo['zipCode']
+    if  ipInfo.has_key('metroCode'):
+        print "--- Metro code: %s" % ipInfo['metroCode']
+    if ipInfo.has_key('areaCode'):
+        print "--- Area code: %s" % ipInfo['areaCode']
+    if ipInfo.has_key('postalCode'):
+        print "--- Postal code: %s" % ipInfo['postalCode']
+    if ipInfo.has_key('dmaCode'):
+        print "--- DMA code: %s" % ipInfo['dmaCode']
+    if ipInfo.has_key('asn'):
+        print "--- ASN: %s" % ipInfo['asn']            
+    if ipInfo.has_key('geoSource'):
+        print "--- Geo source: %s" % ipInfo['geoSource']

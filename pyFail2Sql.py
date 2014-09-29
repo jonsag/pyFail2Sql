@@ -101,17 +101,9 @@ elif attack and not ip:
     
 if lookup and ip:
     ipInfo = lookupIP(ip, verbose)
-    longitude, latitude, countryCode, city, country, regionCode, region, geoSource = ipInfo
+
     print "\nResult:"
     print "-" * 60
-    print "--- Country code: %s" % countryCode
-    print "--- Country: %s" % country
-    print "--- Region code: %s" % regionCode
-    print "--- Region: %s" % region
-    print "--- City: %s" % city
-    print "--- Latitude: %s" % latitude
-    print "--- Longitude: %s" % longitude
-    print "--- Geo source: %s" % geoSource
-
+    displayIpInfo(ipInfo, verbose)
 elif lookup and not ip:
     onError(13, "Option -l requires -i <ip>")
