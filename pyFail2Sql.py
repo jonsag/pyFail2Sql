@@ -74,6 +74,7 @@ if not setupDatabase and not writeLog and not statistics and not attack and not 
     onError(3, 3)
         
 if setupDatabase:
+    from setupdb import *
     setupDB(rootUser, rootPass, verbose)    
     
 if writeLog:

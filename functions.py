@@ -7,15 +7,13 @@ import mysql.connector, json
 
 import xml.etree.ElementTree as ET
 
-from mysql.connector import errorcode
+#from mysql.connector import errorcode
 from datetime import datetime
-from getpass import getpass
 
 from libnmap.process import NmapProcess
 from libnmap.parser import NmapParser, NmapParserException
 
 from time import sleep
-from pprint import pprint
 
 ##### read config file
 config = ConfigParser.ConfigParser()
@@ -83,178 +81,20 @@ def usage(exitCode):
     print "      Prints this"
     sys.exit(exitCode)
     
-def create_database(cursor):
-    try:
-        cursor.execute("CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(dbName))
-    except mysql.connector.Error as err:
-        onError(7, "Failed creating database: {}".format(err))
-    
-def setupDB(rootUser, rootPass, verbose): # setup the database with tables and users
-    dbExists = False
 
-    tables = {} # these are the tables that will be created
-    tables[tableName] = (
-    "CREATE TABLE %s ("
-    "  `no` int(11) NOT NULL AUTO_INCREMENT,"
-    "  PRIMARY KEY (`no`)"
-    ") ENGINE=InnoDB" % tableName)
-    
-    columns = []
-    for column, value in (["no", "int(11) NOT NULL AUTO_INCREMENT"],
-                          ["timeStamp", "TIMESTAMP"],
-                          ["name", "varchar(10)"],
-                          ["protocol", "varchar(3)"],
-                          ["port", "int(5)"],
-                          ["ip", "varchar(15)]"],
-                          ["event", "varchar(15)"],
-                          ["longitude", "varchar(10)"],
-                          ["latitude", "varchar(10)"],
-                          ["countryCode", "varchar(2)"],
-                          ["city", "varchar(20)"],
-                          ["country", "varchar(20)"],
-                          ["regionCode", "varchar(3)"],
-                          ["region", "varchar(20)"],
-                          ["geoSource", "varchar(30)"]):
-        
-        columns.append(["%s" % tableName, "ALTER TABLE %s ADD `%s` %s" % (tableName, column, value)])
-    
-    for table, sql in columns:
-        print "%s - %s" % (table, sql)
-        #print line
-    
-    if verbose:
-        print "--- Setting up database"
-    
-    if not rootUser:
-        rootUser = raw_input("User with rights to create database: ") # get user
-    if not rootPass:
-        rootPass = getpass("Password: ") # get user's passsword
-    
-    if verbose:
-        print "Username: %s\nPassword: %s" % (rootUser, rootPass)
-        print "--- Connecting to db server %s..." % dbHost
-    
-    try: # connect to database
-        cnx = mysql.connector.connect(user = rootUser, password = rootPass, host = dbHost, port = dbPort)
-    except mysql.connector.Error as err: # get errors
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            onError(4, "Something is wrong with your user name or password\n    Have you run with argument '--setupdb' yet?")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            onError(5, "Database does not exists\n    Run again with argument '--setupdb'")
-        else:
-            onError(6, err)
-        
-    if verbose:
-        print "    OK"
-        print "--- Creating database %s with all tables we need..." % dbName
-        
-    cursor = cnx.cursor() # construct cursor to use
-    
-    sql = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '%s'" % dbName
-    if verbose:
-        print "--- Checking if database already exists"
-        print "+++ sql = %s" % sql
-    try: # execute the sql
-        cursor.execute(sql)
-    except mysql.connector.Error as err:
-        onError(10, "Failed checking if database exists: {}".format(err))
-    
-    result = cursor.fetchall()
-    for line in result:
-        if line[0] == dbName:
-            if verbose:
-                print "--- Database exists"
-                dbExists = True
-    if not dbExists:
-        if verbose:
-            print "--- Database does not exist. Creating it..." 
-    
-        sql = "CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(dbName) # the sql for creating tables
-        if verbose:
-            print "+++ sql = %s" % sql
-        try: # execute the sql
-            cursor.execute(sql)
-        except mysql.connector.Error as err:
-            onError(7, "Failed creating database: {}".format(err))
-    
-        if verbose:
-            print "    OK"
-
-    if verbose:
-        print "--- Setting database..."        
-    try:
-        cnx.database = dbName
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_BAD_DB_ERROR:
-            create_database(cursor)
-            cnx.database = dbName
-        else:
-                onError(8, err)
-    
-    if verbose:
-        print "    OK"
-        print "--- Creating tables..."
-    
-    for name, ddl in tables.iteritems(): # create the tables one by one
-        print "--- Creating %s..." % name
-        if verbose:
-            print "+++ sql = %s" % ddl
-        try:
-            #print("Creating table {}: ".format(name), end='')
-            cursor.execute(ddl)
-        except mysql.connector.Error as err:
-            if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-                onError(11, "Table %s already exists" % name)
-            else:
-                onError(9, err.msg)
-        else:
-            if verbose:
-                print "    OK"
-                print "--- Creating user %s..." % dbUser
-            
-    sql = "CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'" % (dbUser, dbPass) # sql for creating user
-    if verbose:
-        print "+++ sql = %s" % sql
-    try: # create user
-        cursor.execute(sql)
-    except mysql.connector.Error as err:
-        onError(9, err.msg)
-    else:
-        if verbose:
-            print "    OK"
-            print "--- Adding privileges"
-        
-    sql = "GRANT ALL PRIVILEGES ON %s.* TO '%s'@'localhost' WITH GRANT OPTION" % (dbName, dbUser) # sql for grants
-    if verbose:
-        print "+++ sql = %s" % sql
-    try: # create grants for normal user
-        cursor.execute(sql)
-    except mysql.connector.Error as err:
-        onError(9, err.msg)
-    else:
-        if verbose:
-            print "    OK"
-
-    cursor.close()
-    disconnect(cnx, verbose) # dosconnect from database
-    sys.exit(0)
     
 def siteIsUp(api, verbose):
     responseCode = ""
     siteUp = False
-    
     if verbose:
         print "--- Checking if %s is up..." % api
-        
     try:
         responseCode = urllib2.urlopen(api, timeout = timeOut).getcode()
     except urllib2.URLError, e:
         if verbose:
             print "*** There was an error: %r" % e
-            
     if responseCode and verbose:
         print "--- Response code: %s" % responseCode
-        
     if responseCode == 200:
         siteUp = True
         if verbose:
@@ -277,18 +117,18 @@ def lookupIP(ip, verbose): # get geographical data for ip
         if verbose:
             print "*** Returning empty values"
         ipInfo = {'longitude': "na", 'latitude': "na", 'countryCode': "na",
-              'city': "na", 'country': "na", 'regionCode': "na", 'region': "na",
-              'geoSource': "na",'offset': "na", 'timeZone': "na",
-              'countryCode3': "na", 'isp': "na",'zipCode': "na",
-              'metroCode': "na", 'areaCode': "na"}
+                  'city': "na", 'country': "na", 'regionCode': "na", 'region': "na",
+                  'geoSource': "na",'offset': "na", 'timeZone': "na",
+                  'countryCode3': "na", 'isp': "na",'postalCode': "na",
+                  'metroCode': "na", 'areaCode': "na"}
         
     return ipInfo
 
 def telizeLookup(ip, verbose):
-    geoSource = "freegeoip.net"
+    geoSource = "telize.com"
     
     try:
-        response = urllib2.urlopen("%s%s" % (telizeAPI, ip), timeout = timeOut).read() # get xml from freegeoip
+        response = urllib2.urlopen("%s%s" % (telizeAPI, ip), timeout = timeOut).read() # get json from telize
     except urllib2.URLError, e:
         if verbose:
             print "*** There was an error: %r" % e
@@ -298,131 +138,132 @@ def telizeLookup(ip, verbose):
             print "--- Response:\n%s" % response
         data = json.loads(response)
             
-        try: # longitude
+            
+        if data.has_key('longitude'): # longitude
             longitude = data['longitude']
             if verbose:
                 print "--- Longitude: %s" % longitude
-        except KeyError:
+        else:
             longitude = "na"
             if verbose:
                 print "*** Longitude not retreived"
-        try: # latitude
+        if data.has_key('latitude'): # latitude
             latitude = data['latitude']
             if verbose:
                 print "--- Latitude: %s" % latitude
-        except KeyError:
+        else:
             latitude = "na"
             if verbose:
                 print "*** Latitude not retreived"
-        try: # country code
+        if data.has_key('country_code'): # country code
             countryCode = data['country_code']
             if verbose:
                 print "--- Country code: %s" % countryCode
-        except KeyError:
+        else:
             countryCode = "na"
             if verbose:
                 print "*** Country code not retreived"
-        try: # 3-letter country code
+        if data.has_key('country_code3'): # 3-letter country code
             countryCode3 = data['country_code3']
             if verbose:
                 print "--- 3-letter country code: %s" % countryCode3
-        except KeyError:
+        else:
             countryCode3 = "na"
             if verbose:
                 print "*** 3-letter country code not retreived"
-        try: # country
+        if data.has_key('country'): # country
             country = data['country']
             if verbose:
                 print "--- Country: %s" % country
-        except KeyError:
+        else:
             country = "na"
             if verbose:
                 print "*** Country not retreived"
-        try: # ISP
+        if data.has_key('isp'): # ISP
             isp = data['isp']
             if verbose:
                 print "--- ISP: %s" % isp
-        except KeyError:
+        else:
             isp = "na"
             if verbose:
                 print "*** ISP not retreived"
-        try: # continent code
+        if data.has_key('continent_code'): # continent code
             continentCode = data['continent_code']
             if verbose:
                 print "--- Continent code: %s" % continentCode
-        except KeyError:
+        else:
             continentCode = "na"
             if verbose:
                 print "*** Continent code not retreived"
-        try: # city
+        if data.has_key('city'): # city
             city = data['city']
             if verbose:
                 print "--- City: %s" % city
-        except KeyError:
+        else:
             city = "na"
             if verbose:
                 print "*** City not retreived"
-        try: # time zone
+        if data.has_key('timezone'): # time zone
             timeZone = data['timezone']
             if verbose:
                 print "--- Time zone: %s" % timeZone
-        except KeyError:
+        else:
             timeZone = "na"
             if verbose:
                 print "*** Time zone not retreived"
-        try: # region
+        if data.has_key('region'): # region
             region = data['region']
             if verbose:
                 print "--- Region: %s" % region
-        except KeyError:
+        else:
             region = "na"
             if verbose:
                 print "*** Region not retreived"
-        try: # region code
+        if data.has_key('region_code'): # region code
             regionCode = data['region_code']
             if verbose:
                 print "--- Region code: %s" % regionCode
-        except KeyError:
+        else:
             regionCode = "na"
             if verbose:
                 print "*** Region code not retreived"
-        try: # offset
+        if data.has_key('offset'): # offset
             offset = data['offset']
             if verbose:
                 print "--- Offset: %s" % offset
-        except KeyError:
+        else:
             offset = "na"
             if verbose:
                 print "*** Offset not retreived"
-        try: # area code
+        if data.has_key('area_code'): # area code
             areaCode = data['area_code']
             if verbose:
                 print "--- Area code: %s" % areaCode
-        except KeyError:
+        else:
             areaCode = "na"
             if verbose:
                 print "*** Area code not retreived"
-        try: # postal code
+        if data.has_key('postal_code'): # postal code
             postalCode = data['postal_code']
             if verbose:
                 print "--- postal code: %s" % postalCode
-        except KeyError:
+        else:
             postalCode = "na"
             if verbose:
                 print "*** Postal code not retreived"
-        try: # postal code
+        if data.has_key('dma_code'): # dma code
             dmaCode = data['dma_code']
             if verbose:
                 print "--- postal code: %s" % dmaCode
-        except KeyError:
+        else:
             dmaCode = "na"
             if verbose:
                 print "*** DMA code not retreived"
-        try: # asn
+        if data.has_key('asn'): # asn
             asn = data['asn']
             if verbose:
                 print "--- postal code: %s" % asn
-        except KeyError:
+        else:
             asn = "na"
             if verbose:
                 print "*** ASN not retreived"
@@ -447,7 +288,7 @@ def freegeoipLookup(ip, verbose):
     regionCode = "na"
     region = "na"
     city = "na"
-    zipCode = "na"
+    postalCode = "na"
     latitude = "na"
     longitude = "na"
     metroCode = "na"
@@ -488,9 +329,9 @@ def freegeoipLookup(ip, verbose):
                 if verbose:
                     print "--- City: %s" % city
             elif 'ZipCode' in xmlChild.tag:
-                zipCode = xmlChild.text
+                postalCode = xmlChild.text
                 if verbose:
-                    print "--- Zip code: %s" % zipCode
+                    print "--- Zip code: %s" % Code
             elif 'Latitude' in xmlChild.tag:
                 latitude = xmlChild.text
                 if verbose:
@@ -513,7 +354,7 @@ def freegeoipLookup(ip, verbose):
     
     ipInfo = {'longitude': longitude, 'latitude': latitude, 'countryCode': countryCode,
               'city': city, 'country': country, 'regionCode': regionCode, 'region': region,
-              'geoSource': geoSource, 'zipCode': zipCode,
+              'geoSource': geoSource, 'postalCode': postalCode,
               'metroCode': metroCode, 'areaCode': areaCode}
     
     return ipInfo
@@ -523,11 +364,12 @@ def logSql(log, ipInfo, verbose): # create sql for the log
     sql = (
         "INSERT INTO %s"
         " (`name`, `protocol`, `port`, `ip`, `event`, `longitude`, `latitude`,"
-        "`countryCode`, `city`, `country`, `regionCode`,"
-        "`region`, `geoSource`)"
+        " `countryCode`, `city`, `country`, `regionCode`,"
+        " `region`, `geoSource`)"
         " VALUES"
         " ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
-        % (tableName, name, protocol, port, ip, event, ipInfo['longitude'], ipInfo['latitude'],
+        % (tableName,
+           name, protocol, port, ip, event, ipInfo['longitude'], ipInfo['latitude'],
            ipInfo['countryCode'], ipInfo['city'], ipInfo['country'], ipInfo['regionCode'],
            ipInfo['region'], ipInfo['geoSource']))
            
@@ -542,9 +384,9 @@ def connect(dbName, verbose): # connect to database as normal user
     try:
         cnx = mysql.connector.connect(user = dbUser, password = dbPass, host = dbHost, port = dbPort, database = dbName)
     except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+        if err.errno == mysql.connector.errorcode.ER_ACCESS_DENIED_ERROR:
             onError(4, "*** Something is wrong with your user name or password\n    Have you run with argument '--setupdb' yet?")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+        elif err.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
             onError(5, "*** Database does not exists\n    Run again with argument '--setupdb'")
         else:
             onError(6, "*** %s" % err)
@@ -784,41 +626,28 @@ def nmap(ip, verbose):
         print("No results returned")
 
 def displayIpInfo(ipInfo, verbose):
-    if ipInfo.has_key('continentCode'):
-        print "--- Continent code: %s" % ipInfo['continentCode']
-    if ipInfo.has_key('countryCode'):
-        print "--- Country code: %s" % ipInfo['countryCode']
-    if ipInfo.has_key('countryCode3'):
-        print "--- 3-letter country code: %s" % ipInfo['countryCode3']
-    if ipInfo.has_key('country'):
-        print "--- Country: %s" % ipInfo['country']
-    if ipInfo.has_key('regionCode'):
-        print "--- Region code: %s" % ipInfo['regionCode']
-    if ipInfo.has_key('region'):
-        print "--- Region: %s" % ipInfo['region']
-    if ipInfo.has_key('city'):
-        print "--- City: %s" % ipInfo['city']
-    if ipInfo.has_key('latitude'):
-        print "--- Latitude: %s" % ipInfo['latitude']
-    if ipInfo.has_key('longitude'):
-        print "--- Longitude: %s" % ipInfo['longitude']
-    if ipInfo.has_key('isp'):
-        print "--- ISP: %s" % ipInfo['isp']
-    if ipInfo.has_key('timeZone'):
-        print "--- Time Zone: %s" % ipInfo['timeZone']
-    if ipInfo.has_key('offset'):
-        print "--- Offset: %s" % ipInfo['offset']
-    if ipInfo.has_key('zipCode'):
-        print "--- Zip code: %s" % ipInfo['zipCode']
-    if  ipInfo.has_key('metroCode'):
-        print "--- Metro code: %s" % ipInfo['metroCode']
-    if ipInfo.has_key('areaCode'):
-        print "--- Area code: %s" % ipInfo['areaCode']
-    if ipInfo.has_key('postalCode'):
-        print "--- Postal code: %s" % ipInfo['postalCode']
-    if ipInfo.has_key('dmaCode'):
-        print "--- DMA code: %s" % ipInfo['dmaCode']
-    if ipInfo.has_key('asn'):
-        print "--- ASN: %s" % ipInfo['asn']            
-    if ipInfo.has_key('geoSource'):
-        print "--- Geo source: %s" % ipInfo['geoSource']
+    textKeyPairs = (
+                    ('City', 'city'),
+                    ('Region', 'region'),
+                    ('Country', 'country'),
+                    ('Latitude', 'latitude'),
+                    ('Longitude', 'longitude'),
+                    ('Region code', 'regionCode'),
+                    ('Country code', 'countryCode'),
+                    ('3-letter country code', 'countryCode3'),
+                    ('Continent code', 'continentCode'),
+                    ('Time Zone', 'timeZone'),
+                    ('Offset', 'offset'),
+                    ('Postal code', 'postalCode'),
+                    ('Area code', 'areaCode'),
+                    ('Metro code', 'metroCode'),
+                    ('DMA code', 'dmaCode'),
+                    ('ASN', 'asn'),
+                    ('ISP', 'isp'),
+                    ('Geo source', 'geoSource')
+                    )
+    
+    for text, key in textKeyPairs:
+        if ipInfo.has_key(key):
+            print "--- %s: %s" % (text, ipInfo[key])
+        
