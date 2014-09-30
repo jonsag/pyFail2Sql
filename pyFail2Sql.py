@@ -53,15 +53,18 @@ for option, argument in myopts:
     elif option in ('-v', '--verbose'):
         verbose = True
     elif option in ('-s', '--statistics'):
+        from stats import *
         statistics = True
     elif option in ('-x', '--extendedstatististics'):
         statistics = True
         extendedStats = True
     elif option in ('-a', '--attack'):
+        from exploit import *
         attack = True
     elif option in ('-l', '--lookup'):
         lookup = True
     elif option in ('--setupdb'):
+        from setupdb import *
         setupDatabase = True
     elif option in ('--rootuser'):
         rootUser = argument
@@ -74,7 +77,6 @@ if not setupDatabase and not writeLog and not statistics and not attack and not 
     onError(3, 3)
         
 if setupDatabase:
-    from setupdb import *
     setupDB(rootUser, rootPass, verbose)    
     
 if writeLog:
@@ -84,7 +86,7 @@ if writeLog:
     if verbose:
         print sql
     result = doQuery(sql, verbose) # write to log
-    
+
 if statistics and not ip and not country and not name:
     showStatistics(extendedStats, verbose)
 elif statistics and ip:
