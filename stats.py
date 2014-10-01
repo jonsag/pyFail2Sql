@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-from functions import *
+from dbcomm import *
+
+import socket
 
 def showStatistics(extendedStats, verbose):
     stat = []
@@ -68,3 +70,4 @@ def showExtendedStats(searchField, searchTerm, verbose):
             
     cursor.close()
     disconnect(cnx, verbose) # disconnect from database
+    

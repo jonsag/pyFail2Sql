@@ -2,8 +2,15 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import getopt
-from functions import *
+from dbcomm import *
+from exploit import *
+from geolookup import *
+from misc import *
+from setupdb import *
+from stats import *
+
+import getopt, sys
+
 
 writeLog = False
 verbose = False
@@ -53,18 +60,15 @@ for option, argument in myopts:
     elif option in ('-v', '--verbose'):
         verbose = True
     elif option in ('-s', '--statistics'):
-        from stats import *
         statistics = True
     elif option in ('-x', '--extendedstatististics'):
         statistics = True
         extendedStats = True
     elif option in ('-a', '--attack'):
-        from exploit import *
         attack = True
     elif option in ('-l', '--lookup'):
         lookup = True
     elif option in ('--setupdb'):
-        from setupdb import *
         setupDatabase = True
     elif option in ('--rootuser'):
         rootUser = argument
@@ -82,7 +86,7 @@ if setupDatabase:
 if writeLog:
     log = (name, protocol, port, ip, event) # declare the log to write
     ipInfo = lookupIP(ip, verbose) # get geographical info of ip
-    sql = logSql(log, ipInfo, verbose) # construct sql
+    sql = logSql(log, ipInfo, verbose) # construct dbcomm
     if verbose:
         print sql
     result = doQuery(sql, verbose) # write to log
