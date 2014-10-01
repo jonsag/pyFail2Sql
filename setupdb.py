@@ -31,27 +31,26 @@ def columnsConfig(verbose):
     
     if verbose:
         print "--- Reading columns config..."
-        
-    config = [
-              ["timeStamp", "TIMESTAMP"],
-              ["name", "varchar(10)"],
-              ["protocol", "varchar(3)"],
-              ["port", "int(5)"],
-              ["ip", "varchar(15)"],
-              ["event", "varchar(15)"],
-              ["longitude", "varchar(10)"],
-              ["latitude", "varchar(10)"],
-              ["countryCode", "varchar(2)"],
-              ["city", "varchar(20)"],
-              ["region", "varchar(20)"],
-              ["country", "varchar(20)"],
-              ["regionCode", "varchar(3)"],
-              ["region", "varchar(20)"],
-              ["geoSource", "varchar(30)"],
-              ]
     
-    for column, type in config:
-        columns.append({'table': tableName, 'column': column, 'type': type})
+    table1 = tableName   
+    set1 = [["timeStamp", "timestamp"],
+            ["name", "varchar(10)"],
+            ["protocol", "varchar(3)"],
+            ["port", "int(5)"],
+            ["ip", "varchar(15)"],
+            ["event", "varchar(15)"],
+            ["longitude", "varchar(10)"],
+            ["latitude", "varchar(10)"],
+            ["countryCode", "varchar(2)"],
+            ["city", "varchar(20)"],
+            ["region", "varchar(20)"],
+            ["country", "varchar(20)"],
+            ["regionCode", "varchar(3)"],
+            ["region", "varchar(20)"],
+            ["geoSource", "varchar(30)"]]
+    
+    for column, value in set1:
+        columns.append({'table': table1, 'column': column, 'type': value})
         
     return columns
         
@@ -90,7 +89,8 @@ def connectToDb(rootUser, rootPass, dBase, verbose):
                 onError(5, "Database does not exists\n    Run again with argument '--setupdb'")
             else:
                 onError(6, err)
-    return cnx
+                
+    return cnx, rootUser, rootPass
 
 def createDatabase(cursor, verbose):
     dbExists = False
@@ -198,6 +198,8 @@ def createColumns(cursor, verbose):
             print "+++ sql = %s" % sql
         try: # checking if column exists
             cursor.execute(sql)
+            if verbose:
+                print "    OK"
         except mysql.connector.Error as err:
             onError(10, "Error: {}".format(err))
         result = cursor
@@ -283,7 +285,7 @@ def setupDB(rootUser, rootPass, verbose): # setup the database with tables and u
     if verbose:
         print "--- Setting up database"
 
-    cnx = connectToDb(rootUser, rootPass, False, verbose) # get credentials and connect to db server
+    cnx, rootUser, rootPass = connectToDb(rootUser, rootPass, False, verbose) # get credentials and connect to db server
     cursor = cnx.cursor() # construct cursor to use
 
     createDatabase(cursor, verbose) # check if database already exists, if not, create it
@@ -294,7 +296,7 @@ def setupDB(rootUser, rootPass, verbose): # setup the database with tables and u
     disconnect(cnx, verbose) # disconnect from server
 
     #cnx, cursor = useDatabase(cnx, cursor, verbose) # use the new database
-    cnx = connectToDb(rootUser, rootPass, dbName, verbose) # connect to server, set database to use
+    cnx, rootUser, rootPass = connectToDb(rootUser, rootPass, dbName, verbose) # connect to server, set database to use
     cursor = cnx.cursor() # create cursor
     
     createTables(cursor, verbose) # check if tables exists, if not, create them
@@ -303,4 +305,13 @@ def setupDB(rootUser, rootPass, verbose): # setup the database with tables and u
 
     cursor.close()
     disconnect(cnx, verbose) # disconnect from database
-    
+  
+    if verbose:
+        print "--- Trying to connect to server as normal user..."
+    cnx = connect(dbName, verbose) # connect to database as normal user
+    if cnx:
+        if verbose:
+            print "--- Connected as normal user"
+    else:
+        if verbose:
+            print "*** Failed to connect"

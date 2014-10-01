@@ -59,10 +59,10 @@ def showExtendedStats(searchField, searchTerm, verbose):
                 word = "times"
             print "banned: %s %s" % (count, word)
             
-            sql = "SELECT `timeStamp`, `ip`, `city`, `country`, `countryCode` FROM %s WHERE %s = '%s'" % (tableName, searchField, searchTerm)
+            sql = "SELECT `timeStamp`, `ip`, `city`, `region`, `country`, `countryCode` FROM %s WHERE %s = '%s'" % (tableName, searchField, searchTerm)
             cursor = executeSql(cursor, sql, verbose)
-            for timeStamp, ip, city, country, countryCode in cursor:
-                print "%s\t%s\t%s, %s" % (timeStamp, ip, city, country)
+            for timeStamp, ip, city, region, country, countryCode in cursor:
+                print "%s\t%s\t%s, %s, %s" % (timeStamp, ip, city, region, country)
             print
         else:
             print "%s does not occur in database" % field
