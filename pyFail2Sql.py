@@ -8,6 +8,7 @@ from geolookup import *
 from misc import *
 from setupdb import *
 from stats import *
+from updatedb import *
 
 import getopt, sys
 
@@ -19,6 +20,7 @@ statistics = False
 extendedStats = False
 attack = False
 lookup = False
+fillEmpty = False
 
 name = ""
 protocol = ""
@@ -31,8 +33,8 @@ rootPass = ""
 
 ############### handle arguments ###############
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'wsxaln:q:p:i:e:c:vh' ,
-    ['write', 'statistics', 'extendedstatistics', 'attack', 'lookup'
+    myopts, args = getopt.getopt(sys.argv[1:],'wsxalfn:q:p:i:e:c:vh' ,
+    ['write', 'statistics', 'extendedstatistics', 'attack', 'lookup', 'fillempty'
      'name=', 'protocol=', 'port=', 'ip=', 'event=', 'country=',
      'setupdb', 'rootuser=', 'rootpass=', 'verbose', 'help'])
 
@@ -68,6 +70,8 @@ for option, argument in myopts:
         attack = True
     elif option in ('-l', '--lookup'):
         lookup = True
+    elif option in ('-f', '--fillempty'):
+        fillEmpty = True    
     elif option in ('--setupdb'):
         setupDatabase = True
     elif option in ('--rootuser'):
@@ -77,7 +81,7 @@ for option, argument in myopts:
     elif option in ('-h', '--help'):
         usage(0)
         
-if not setupDatabase and not writeLog and not statistics and not attack and not lookup:
+if not setupDatabase and not writeLog and not statistics and not attack and not lookup and not fillEmpty:
     onError(3, 3)
         
 if setupDatabase:
@@ -114,3 +118,7 @@ if lookup and ip:
     displayIpInfo(ipInfo, verbose)
 elif lookup and not ip:
     onError(13, "Option -l requires -i <ip>")
+    
+if fillEmpty:
+    findEmpty(verbose)
+    

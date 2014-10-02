@@ -6,7 +6,7 @@ from misc import *
 
 import mysql.connector
 
-def logSql(log, ipInfo, verbose): # create py for the log
+def logSql(log, ipInfo, verbose): # create sql for the log
     name, protocol, port, ip, event = log
     sql = (
         "INSERT INTO %s"
@@ -21,7 +21,7 @@ def logSql(log, ipInfo, verbose): # create py for the log
            ipInfo['region'], ipInfo['geoSource']))
            
     if verbose:
-        print "+++ py = %s" % sql
+        print "+++ sql = %s" % sql
     return sql
 
 def connect(dbName, verbose): # connect to database as normal user
@@ -73,7 +73,7 @@ def doQuery(sql, verbose): # write log to database
 def executeSql(cursor, sql, verbose):
     if verbose:
         print "--- Querying database"
-        print "+++ py = %s" % sql
+        print "+++ sql = %s" % sql
     try: # get answer
         cursor.execute(sql)
     except mysql.connector.Error as err:
@@ -81,31 +81,6 @@ def executeSql(cursor, sql, verbose):
     else:
         if verbose:
             print "    OK"
-    return cursor  
+    return cursor
 
-def displayIpInfo(ipInfo, verbose):
-    textKeyPairs = (
-                    ('City', 'city'),
-                    ('Region', 'region'),
-                    ('Country', 'country'),
-                    ('Latitude', 'latitude'),
-                    ('Longitude', 'longitude'),
-                    ('Region code', 'regionCode'),
-                    ('Country code', 'countryCode'),
-                    ('3-letter country code', 'countryCode3'),
-                    ('Continent code', 'continentCode'),
-                    ('Time Zone', 'timeZone'),
-                    ('Offset', 'offset'),
-                    ('Postal code', 'postalCode'),
-                    ('Area code', 'areaCode'),
-                    ('Metro code', 'metroCode'),
-                    ('DMA code', 'dmaCode'),
-                    ('ASN', 'asn'),
-                    ('ISP', 'isp'),
-                    ('Geo source', 'geoSource')
-                    )
-    
-    for text, key in textKeyPairs:
-        if ipInfo.has_key(key):
-            print "--- %s: %s" % (text, ipInfo[key])
         

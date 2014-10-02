@@ -68,3 +68,29 @@ def usage(exitCode):
     print "%s -h" % sys.argv[0]
     print "      Prints this"
     sys.exit(exitCode)
+    
+def displayIpInfo(ipInfo, verbose):
+    textKeyPairs = (
+                    ('City', 'city'),
+                    ('Region', 'region'),
+                    ('Country', 'country'),
+                    ('Latitude', 'latitude'),
+                    ('Longitude', 'longitude'),
+                    ('Region code', 'regionCode'),
+                    ('Country code', 'countryCode'),
+                    ('3-letter country code', 'countryCode3'),
+                    ('Continent code', 'continentCode'),
+                    ('Time Zone', 'timeZone'),
+                    ('Offset', 'offset'),
+                    ('Postal code', 'postalCode'),
+                    ('Area code', 'areaCode'),
+                    ('Metro code', 'metroCode'),
+                    ('DMA code', 'dmaCode'),
+                    ('ASN', 'asn'),
+                    ('ISP', 'isp'),
+                    ('Geo source', 'geoSource')
+                    )
+    
+    for text, key in textKeyPairs:
+        if ipInfo.has_key(key):
+            print "--- %s: %s" % (text, ipInfo[key])
