@@ -168,6 +168,7 @@ def freegeoipLookup(response, verbose):
     longitude = noDataText
     metroCode = noDataText
     areaCode = noDataText
+    isp = noDataText
     geoSource = "freegeoip.net"
     
     if verbose:
@@ -220,6 +221,6 @@ def freegeoipLookup(response, verbose):
     ipInfo = {'longitude': longitude, 'latitude': latitude, 'countryCode': countryCode,
               'city': city, 'country': country, 'regionCode': regionCode, 'region': region,
               'geoSource': geoSource, 'postalCode': postalCode,
-              'metroCode': metroCode, 'areaCode': areaCode}
+              'metroCode': metroCode, 'areaCode': areaCode, 'isp': isp}
     
     return ipInfo
