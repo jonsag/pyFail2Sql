@@ -35,20 +35,20 @@ def siteHasData(api, ip, verbose):
     else:
         if verbose:
             print "*** Site is down"
-    return response
+    return response    
 
 def lookupIP(ip, verbose): # get geographical data for ip
-    response = siteHasData(freegeoipAPI, ip, verbose)
+    response = siteHasData(telizeAPI, ip, verbose)
     if response:
         if verbose:
             print "--- Parsing geographical information..."
-        ipInfo = freegeoipLookup(response, verbose)
+        ipInfo = telizeLookup(response, verbose)
     else:
-        response = siteHasData(telizeAPI, ip, verbose)
+        response = siteHasData(freegeoipAPI, ip, verbose)
         if response:
             if verbose:
                 print "--- Parsing geographical information..."
-            ipInfo = telizeLookup(response, verbose) 
+            ipInfo = freegeoipLookup(response, verbose) 
         else:
             if verbose:
                 print "*** Returning empty values"
