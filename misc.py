@@ -21,6 +21,7 @@ telizeAPI = config.get('geoLookup', 'telizeAPI')
 timeOut = int(config.get('geoLookup', 'timeOut'))
 noDataText = config.get('geoLookup', 'noDataText')
 
+scores = int(config.get('presentation', 'scores'))
 
 ##### what to do on errors
 def onError(errorCode, extra):

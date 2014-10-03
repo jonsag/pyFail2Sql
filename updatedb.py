@@ -5,6 +5,23 @@
 from dbcomm import *
 from geolookup import *
 
+def addData(idNo, ipInfo, cnx, cursor, verbose):
+    sql = (
+           "UPDATE %s SET countryCode='%s', "
+           "city='%s', region='%s', country='%s', "
+           "regionCode='%s', geoSource='%s' "
+           "WHERE no='%s'"
+           % (tableName, ipInfo['countryCode'],
+           ipInfo['city'], ipInfo['region'], ipInfo['country'],
+           ipInfo['regionCode'], ipInfo['geoSource'],
+           idNo)
+           )
+        
+    cursor = executeSql(cursor, sql, verbose)
+    
+    cnx.commit() # commit changes
+    
+
 def findEmpty(verbose):
     posts = []
     
@@ -25,8 +42,14 @@ def findEmpty(verbose):
         if verbose:
             print "--- These posts does not have adequate geo data:"
         for idNo, ip, city, region, country in posts:
-            print "id: %s\tIP: %s\t%s, %s, %s" % (idNo, ip, city, region, country)
+            if verbose:
+                print "id: %s\tIP: %s\t%s, %s, %s" % (idNo, ip, city, region, country)
+                print "-" * scores
             ipInfo = lookupIP(ip, verbose)
+            if verbose:
+                print "--- Updating post..."
+            addData(idNo, ipInfo, cnx, cursor, verbose)
     else:
-       print "--- All posts have geo data"
+        if verbose:
+            print "--- All posts have geo data"
         

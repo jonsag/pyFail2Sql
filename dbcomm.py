@@ -64,15 +64,19 @@ def doQuery(sql, verbose): # write log to database
             result = True
             if verbose:
                 print "    OK"
-            
+        
+        if verbose:
+            print "--- Committing changes..."    
         cnx.commit() # commit changes
+        if verbose:
+            print "    OK"
         cursor.close() 
     disconnect(cnx, verbose) # disconnect from database
     return result
 
 def executeSql(cursor, sql, verbose):
     if verbose:
-        print "--- Querying database"
+        print "--- Querying database..."
         print "+++ sql = %s" % sql
     try: # get answer
         cursor.execute(sql)

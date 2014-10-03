@@ -46,7 +46,6 @@ def columnsConfig(verbose):
             ["region", "varchar(20)"],
             ["country", "varchar(20)"],
             ["regionCode", "varchar(3)"],
-            ["region", "varchar(20)"],
             ["geoSource", "varchar(30)"]]
     
     for column, value in set1:
