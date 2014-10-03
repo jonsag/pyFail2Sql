@@ -9,7 +9,7 @@ def addData(idNo, ipInfo, cnx, cursor, verbose):
     sql = (
            "UPDATE %s SET countryCode='%s', "
            "city='%s', region='%s', country='%s', "
-           "regionCode='%s', geoSource='%s' ",
+           "regionCode='%s', geoSource='%s', ",
            "longitude='%s', latitude='%s' "
            "WHERE no='%s'"
            % (tableName, ipInfo['countryCode'],
@@ -49,9 +49,6 @@ def findEmpty(verbose):
                 noDataText,
                 noDataText)
              )
-    
-    if verbose:
-        print "+++ sql = %s" % sql
         
     cursor = executeSql(cursor, sql, verbose)
     
