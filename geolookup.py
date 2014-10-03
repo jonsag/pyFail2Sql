@@ -52,30 +52,31 @@ def lookupIP(ip, verbose): # get geographical data for ip
         else:
             if verbose:
                 print "*** Returning empty values"
-            ipInfo = {'longitude': "na", 'latitude': "na", 'countryCode': "na",
-                  'city': "na", 'country': "na", 'regionCode': "na", 'region': "na",
-                  'geoSource': "na",'offset': "na", 'timeZone': "na",
-                  'countryCode3': "na", 'isp': "na",'postalCode': "na",
-                  'metroCode': "na", 'areaCode': "na"}
+            ipInfo = {'longitude': noDataText, 'latitude': noDataText, 'countryCode': noDataText,
+                  'city': noDataText, 'country': noDataText, 'regionCode': noDataText, 'region': noDataText,
+                  'geoSource': noDataText,'offset': noDataText, 'timeZone': noDataText,
+                  'countryCode3': noDataText, 'isp': noDataText,'postalCode': noDataText,
+                  'metroCode': noDataText, 'areaCode': noDataText}
         
     return ipInfo
 
 def telizeLookup(response, verbose):
-    longitude = "na"
-    latitude = "na"
-    countryCode = "na"
-    countryCode3 = "na"
-    country = "na"
-    isp = "na"
-    continentCode = "na"
-    city = "na"
-    timeZone = "na"
-    regionCode = "na"
-    offset = "na"
-    areaCode = "na"
-    postalCode = "na"
-    dmaCode = "na"
-    asn = "na"
+    longitude = noDataText
+    latitude = noDataText
+    countryCode = noDataText
+    countryCode3 = noDataText
+    country = noDataText
+    isp = noDataText
+    continentCode = noDataText
+    city = noDataText
+    timeZone = noDataText
+    region = noDataText
+    regionCode = noDataText
+    offset = noDataText
+    areaCode = noDataText
+    postalCode = noDataText
+    dmaCode = noDataText
+    asn = noDataText
     geoSource = "telize.com"
 
     if verbose:
@@ -122,10 +123,6 @@ def telizeLookup(response, verbose):
         region = data['region']
         if verbose:
             print "--- Region: %s" % region
-    else:
-        region = "na"
-        if verbose:
-            print "*** Region not retreived"
     if data.has_key('region_code'): # region code
         regionCode = data['region_code']
         if verbose:
@@ -161,16 +158,16 @@ def telizeLookup(response, verbose):
     return ipInfo
 
 def freegeoipLookup(response, verbose):
-    countryCode = "na"
-    country = "na"
-    regionCode = "na"
-    region = "na"
-    city = "na"
-    postalCode = "na"
-    latitude = "na"
-    longitude = "na"
-    metroCode = "na"
-    areaCode = "na"
+    countryCode = noDataText
+    country = noDataText
+    regionCode = noDataText
+    region = noDataText
+    city = noDataText
+    postalCode = noDataText
+    latitude = noDataText
+    longitude = noDataText
+    metroCode = noDataText
+    areaCode = noDataText
     geoSource = "freegeoip.net"
     
     if verbose:

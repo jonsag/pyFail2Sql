@@ -19,6 +19,8 @@ dbPass = config.get('mysql','dbPass')
 freegeoipAPI = config.get('geoLookup', 'freeGeoIpAPI')  
 telizeAPI = config.get('geoLookup', 'telizeAPI')
 timeOut = int(config.get('geoLookup', 'timeOut'))
+noDataText = config.get('geoLookup', 'noDataText')
+
 
 ##### what to do on errors
 def onError(errorCode, extra):
