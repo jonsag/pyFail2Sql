@@ -9,11 +9,13 @@ def addData(idNo, ipInfo, cnx, cursor, verbose):
     sql = (
            "UPDATE %s SET countryCode='%s', "
            "city='%s', region='%s', country='%s', "
-           "regionCode='%s', geoSource='%s' "
+           "regionCode='%s', geoSource='%s' ",
+           "longitude='%s', latitude='%s' "
            "WHERE no='%s'"
            % (tableName, ipInfo['countryCode'],
            ipInfo['city'], ipInfo['region'], ipInfo['country'],
            ipInfo['regionCode'], ipInfo['geoSource'],
+           ipInfo['longitude'], ipInfo['latitude'],
            idNo)
            )
         
@@ -29,7 +31,25 @@ def findEmpty(verbose):
     if cnx:
         cursor = cnx.cursor() # create cursor
     
-    sql = "SELECT no, ip, city, region, country FROM %s WHERE `city` = '%s'" % (tableName, noDataText)
+    sql = (
+           "SELECT no, ip, city, region, country FROM %s WHERE "
+           "`city` = '%s' OR"
+           "`region` = '%s' OR "
+           "`country` = '%s' OR "
+           "`country` = '%s' OR "
+           "`regionCode` = '%s' OR "
+           "`longitude` = '%s' OR "
+           "`latitude` = '%s'"
+             % (tableName, 
+                noDataText,
+                noDataText,
+                noDataText,
+                noDataText,
+                noDataText,
+                noDataText,
+                noDataText)
+             )
+    
     if verbose:
         print "+++ sql = %s" % sql
         
