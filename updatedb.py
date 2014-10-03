@@ -6,6 +6,12 @@ from dbcomm import *
 from geolookup import *
 
 def addData(idNo, ipInfo, cnx, cursor, verbose):
+    print idNo
+    print ipInfo
+    print cnx
+    print cursor
+    print verbose
+    
     sql = (
            "UPDATE %s SET countryCode='%s', "
            "city='%s', region='%s', country='%s', "
