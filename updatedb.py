@@ -16,12 +16,14 @@ def addData(idNo, ipInfo, cnx, cursor, verbose):
            "UPDATE %s SET countryCode='%s', "
            "city='%s', region='%s', country='%s', "
            "regionCode='%s', geoSource='%s', "
-           "longitude='%s', latitude='%s' "
+           "longitude='%s', latitude='%s', "
+           "isp='%s "
            "WHERE no='%s'"
            % (tableName, ipInfo['countryCode'],
            ipInfo['city'], ipInfo['region'], ipInfo['country'],
            ipInfo['regionCode'], ipInfo['geoSource'],
            ipInfo['longitude'], ipInfo['latitude'],
+           ipInfo['isp'],
            idNo)
            )
         

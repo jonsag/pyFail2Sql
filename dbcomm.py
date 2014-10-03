@@ -12,13 +12,15 @@ def logSql(log, ipInfo, verbose): # create sql for the log
         "INSERT INTO %s"
         " (`name`, `protocol`, `port`, `ip`, `event`, `longitude`, `latitude`,"
         " `countryCode`, `city`, `country`, `regionCode`,"
-        " `region`, `geoSource`)"
+        " `region`, `geoSource`, `isp`)"
         " VALUES"
-        " ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
+        " ('%s', '%s', '%s', '%s', '%s', '%s', '%s',"
+        " '%s', '%s', '%s', '%s',"
+        " '%s', '%s', '%s')"
         % (tableName,
            name, protocol, port, ip, event, ipInfo['longitude'], ipInfo['latitude'],
            ipInfo['countryCode'], ipInfo['city'], ipInfo['country'], ipInfo['regionCode'],
-           ipInfo['region'], ipInfo['geoSource']))
+           ipInfo['region'], ipInfo['geoSource'], ipInfo['isp']))
            
     if verbose:
         print "+++ sql = %s" % sql
