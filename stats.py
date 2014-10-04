@@ -16,7 +16,7 @@ def showStatistics(extendedStats, verbose):
 
     cursor = cnx.cursor() # create cursor
         
-    fieldList = (["ip", "IP"], ["country", "Country"], ["name", "Service"])
+    fieldList = (["ip", "IP"], ["country", "Country"], ["name", "Service"], ["isp", "ISP"])
         
     for field, text in fieldList:
         temp = []
@@ -59,10 +59,10 @@ def showExtendedStats(searchField, searchTerm, verbose):
                 word = "times"
             print "banned: %s %s" % (count, word)
             
-            sql = "SELECT `timeStamp`, `ip`, `city`, `region`, `country`, `countryCode` FROM %s WHERE %s = '%s'" % (tableName, searchField, searchTerm)
+            sql = "SELECT `timeStamp`, `ip`, `city`, `region`, `country`, `countryCode`, `isp` FROM %s WHERE %s = '%s'" % (tableName, searchField, searchTerm)
             cursor = executeSql(cursor, sql, verbose)
-            for timeStamp, ip, city, region, country, countryCode in cursor:
-                print "%s\t%s\t%s, %s, %s" % (timeStamp, ip, city, region, country)
+            for timeStamp, ip, city, region, country, countryCode, isp in cursor:
+                print "%s\t%s\t%s, %s, %s\t%s" % (timeStamp, ip, city, region, country, isp)
             print
         else:
             print "%s does not occur in database" % field
