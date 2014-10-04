@@ -30,13 +30,15 @@ event = ""
 country = ""
 rootUser = ""
 rootPass = ""
+column = ""
 
 ############### handle arguments ###############
 try:
     myopts, args = getopt.getopt(sys.argv[1:],'wsxalfn:q:p:i:e:c:vh' ,
     ['write', 'statistics', 'extendedstatistics', 'attack', 'lookup', 'fillempty'
      'name=', 'protocol=', 'port=', 'ip=', 'event=', 'country=',
-     'setupdb', 'rootuser=', 'rootpass=', 'verbose', 'help'])
+     'setupdb', 'rootuser=', 'rootpass=', 'column=',
+     'verbose', 'help'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -78,6 +80,8 @@ for option, argument in myopts:
         rootUser = argument
     elif option in ('--rootpass'):
         rootPass = argument
+    elif option in ('--column'):
+        column = argument
     elif option in ('-h', '--help'):
         usage(0)
         
@@ -120,5 +124,5 @@ elif lookup and not ip:
     onError(13, "Option -l requires -i <ip>")
     
 if fillEmpty:
-    findEmpty(verbose)
+    findEmpty(column, verbose)
     

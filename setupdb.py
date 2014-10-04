@@ -140,6 +140,28 @@ def useDatabase(cnx, cursor, verbose):
             
     return cnx, cursor
 
+def tableExists(newTable, cursor, verbose):
+    tableAlreadyExists = False
+    
+    sql = "SHOW TABLES LIKE '%s'" % newTable
+    if verbose:
+            print "--- Checking if table %s already exists" % newTable
+            print "+++ sql = %s" % sql
+    try: # check if table already exists
+        cursor.execute(sql)
+    except mysql.connector.Error as err:
+        onError(10, "Failed checking if table exists: {}".format(err))
+    
+    result = cursor.fetchall()
+        
+    for line in result:
+        if line[0] == newTable:
+            tableAlreadyExists = True
+            if verbose:
+                print "--- Table exists"
+
+    return tableAlreadyExists
+
 def createTables(cursor, verbose):
     tables = tablesConfig(verbose)
     
@@ -147,24 +169,8 @@ def createTables(cursor, verbose):
         print "--- Creating tables..."
     
     for newTable, createTableSql in tables.iteritems(): # create the tables one by one
-        tableExists = False
-        sql = "SHOW TABLES LIKE '%s'" % newTable
-        if verbose:
-            print "--- Checking if table %s already exists" % newTable
-            print "+++ sql = %s" % sql
-        try: # check if table already exists
-            cursor.execute(sql)
-        except mysql.connector.Error as err:
-            onError(10, "Failed checking if table exists: {}".format(err))
-    
-        result = cursor.fetchall()
-        
-        for line in result:
-            if line[0] == newTable:
-                tableExists = True
-                if verbose:
-                    print "--- Table exists"
-        if not tableExists:
+        tableAlreadyExists = tableExists(newTable, cursor, verbose)
+        if not tableAlreadyExists:
             print "--- Creating %s..." % newTable
             if verbose:
                 print "+++ sql = %s" % createTableSql
@@ -180,6 +186,27 @@ def createTables(cursor, verbose):
                 if verbose:
                     print "    OK"
                     
+def columnExists(table, column, columnType, cursor, verbose):
+    columnExists = False
+    typeCorrect = False
+    sql = "SHOW COLUMNS FROM `%s` LIKE '%s'" % (table, column)
+    if verbose:
+        print "+++ sql = %s" % sql
+    try: # checking if column exists
+        cursor.execute(sql)
+        if verbose:
+            print "    OK"
+    except mysql.connector.Error as err:
+        onError(10, "Error: {}".format(err))
+    result = cursor
+    for answer in result:
+        if answer[0] == column:
+            columnExists = True
+            if answer[1] == type:
+                typeCorrect = True
+                
+    return columnExists, typeCorrect
+                    
 def createColumns(cursor, verbose):
     columns = columnsConfig(verbose)
     
@@ -187,29 +214,14 @@ def createColumns(cursor, verbose):
         print "--- Creating columns..."
         
     for column in columns:
-        columnExists = False
-        typeCorrect = False
         if verbose:
             print "--- Adding column %s to table %s..." % (column['column'], column['table'])
             print "--- Checking if column exists..."
         
-        sql = "SHOW COLUMNS FROM `%s` LIKE '%s'" % (column['table'], column['column'])
-        if verbose:
-            print "+++ sql = %s" % sql
-        try: # checking if column exists
-            cursor.execute(sql)
-            if verbose:
-                print "    OK"
-        except mysql.connector.Error as err:
-            onError(10, "Error: {}".format(err))
-        result = cursor
-        for answer in result:
-            if answer[0] == column['column']:
-                columnExists = True
-                if answer[1] == column['type']:
-                    typeCorrect = True 
+        columnType = column['type']
+        columnAlreadyExists, typeCorrect = columnExists(column['table'], column['column'], columnType, cursor, verbose)
                 
-        if columnExists: # column exists
+        if columnAlreadyExists: # column exists
             if verbose:
                 print "--- Column '%s' exists" % column['column']
             if typeCorrect:
@@ -227,7 +239,7 @@ def createColumns(cursor, verbose):
                         print "    OK"
                 except mysql.connector.Error as err:
                     onError(10, "Error: {}".format(err))
-        else: # column doews not exist
+        else: # column does not exist
             sql = "ALTER TABLE %s ADD `%s` %s" % (column['table'], column['column'], column['type'])
             if verbose:
                 print "--- Column '%s' does not exist" % column['column']
@@ -315,3 +327,6 @@ def setupDB(rootUser, rootPass, verbose): # setup the database with tables and u
     else:
         if verbose:
             print "*** Failed to connect"
+            
+    cursor.close()
+    disconnect(cnx, verbose)
