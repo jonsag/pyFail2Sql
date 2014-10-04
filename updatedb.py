@@ -7,11 +7,6 @@ from geolookup import *
 from setupdb import columnExists
 
 def addData(idNo, ipInfo, cnx, cursor, verbose):
-    print idNo
-    print ipInfo
-    print cnx
-    print cursor
-    print verbose
     
     sql = (
            "UPDATE %s SET countryCode='%s', "
