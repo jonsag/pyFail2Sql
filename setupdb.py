@@ -34,6 +34,7 @@ def columnsConfig(verbose):
     
     table1 = tableName   
     set1 = [["timeStamp", "timestamp NOT NULL DEFAULT current_timestamp"],
+            ["lastUpdated", "timestamp"],
             ["name", "varchar(10)"],
             ["protocol", "varchar(3)"],
             ["port", "int(5)"],
