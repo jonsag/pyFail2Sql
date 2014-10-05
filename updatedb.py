@@ -46,8 +46,8 @@ def fillColumn(column, cnx, cursor, verbose):
     sql = (
            "SELECT no, ip, city, region, country, isp FROM %s WHERE "
            "`%s` = '%s' OR `%s` IS NULL"
-           % (tableName, noDataText,
-              column, column)
+           % (tableName,
+              column, noDataText, column)
             )
     
     cursor = executeSql(cursor, sql, verbose)
