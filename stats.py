@@ -20,7 +20,10 @@ def showStatistics(extendedStats, verbose):
     for field, text in fieldList:
         temp = []
         timesBannedText = "times banned"
-        sql = "SELECT %s, COUNT(*) FROM %s GROUP BY %s" % (field, tableName, field)            
+        sql = (
+               "SELECT %s, COUNT(*) AS `times` FROM %s GROUP BY %s ORDER BY `times` DESC"
+               % (field, tableName, field)
+               )            
         cursor = executeSql(cursor, sql, verbose)
         result = cursor.fetchall()
         
