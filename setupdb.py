@@ -33,7 +33,7 @@ def columnsConfig(verbose):
         print "--- Reading columns config..."
     
     table1 = tableName   
-    set1 = [["timeStamp", "datetime"],
+    set1 = [["timeStamp", "timestamp NOT NULL DEFAULT current_timestamp"],
             ["name", "varchar(10)"],
             ["protocol", "varchar(3)"],
             ["port", "int(5)"],
