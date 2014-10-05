@@ -22,7 +22,7 @@ def showStatistics(extendedStats, verbose):
         timesBannedText = "times banned"
         sql = (
                "SELECT %s, COUNT(*) AS `times` FROM %s GROUP BY %s ORDER BY `times` DESC"
-               % (field, tableName, field)
+               % (field, logTableName, field)
                )            
         cursor = executeSql(cursor, sql, verbose)
         result = cursor.fetchall()
@@ -72,7 +72,7 @@ def showExtendedStats(searchField, text, searchTerm, verbose):
     
     cursor = cnx.cursor() # create cursor
     
-    sql = "SELECT %s, COUNT(*) FROM %s WHERE %s = '%s'" % (searchField, tableName, searchField, searchTerm)
+    sql = "SELECT %s, COUNT(*) FROM %s WHERE %s = '%s'" % (searchField, logTableName, searchField, searchTerm)
     cursor = executeSql(cursor, sql, verbose)
     result = cursor.fetchall()
     
@@ -85,7 +85,7 @@ def showExtendedStats(searchField, text, searchTerm, verbose):
             print "Banned %s %s:" % (count, word)
             #print "-" * (scores / 2)
             
-            sql = "SELECT `timeStamp`, `ip`, `city`, `region`, `country`, `countryCode`, `isp` FROM %s WHERE %s = '%s'" % (tableName, searchField, searchTerm)
+            sql = "SELECT `timeStamp`, `ip`, `city`, `region`, `country`, `countryCode`, `isp` FROM %s WHERE %s = '%s'" % (logTableName, searchField, searchTerm)
             cursor = executeSql(cursor, sql, verbose)
             result = cursor.fetchall()
             

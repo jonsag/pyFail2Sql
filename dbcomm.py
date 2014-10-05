@@ -17,7 +17,7 @@ def logSql(log, ipInfo, verbose): # create sql for the log
         " ('%s', '%s', '%s', '%s', '%s', '%s', '%s',"
         " '%s', '%s', '%s', '%s',"
         " '%s', '%s', '%s')"
-        % (tableName,
+        % (logTableName,
            name, protocol, port, ip, event, ipInfo['longitude'], ipInfo['latitude'],
            ipInfo['countryCode'], ipInfo['city'], ipInfo['country'], ipInfo['regionCode'],
            ipInfo['region'], ipInfo['geoSource'], ipInfo['isp']))

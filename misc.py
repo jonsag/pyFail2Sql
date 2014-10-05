@@ -11,7 +11,7 @@ config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__))) # rea
 dbHost = config.get('mysql','dbHost')
 dbPort = int(config.get('mysql','dbPort'))
 dbName = config.get('mysql','dbName')
-tableName = config.get('mysql','tableName')
+logTableName = config.get('mysql','logTableName')
 
 dbUser = config.get('mysql','dbUser')
 dbPass = config.get('mysql','dbPass')

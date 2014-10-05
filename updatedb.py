@@ -15,7 +15,7 @@ def addData(idNo, ipInfo, cnx, cursor, verbose):
            "longitude='%s', latitude='%s', "
            "isp='%s' "
            "WHERE no='%s'"
-           % (tableName, ipInfo['countryCode'],
+           % (logTableName, ipInfo['countryCode'],
            ipInfo['city'], ipInfo['region'], ipInfo['country'],
            ipInfo['regionCode'], ipInfo['geoSource'],
            ipInfo['longitude'], ipInfo['latitude'],
@@ -33,7 +33,7 @@ def fillColumn(column, cnx, cursor, verbose):
     if verbose:
         print "--- Checking if column '%s' exists..." % column
     
-    columnAlreadyExists, typeCorrect = columnExists(tableName, column, "na", cursor, verbose)
+    columnAlreadyExists, typeCorrect = columnExists(logTableName, column, "na", cursor, verbose)
     
     if columnAlreadyExists:
         if verbose:
@@ -46,7 +46,7 @@ def fillColumn(column, cnx, cursor, verbose):
     sql = (
            "SELECT no, ip, city, region, country, isp FROM %s WHERE "
            "`%s` = '%s' OR `%s` IS NULL"
-           % (tableName,
+           % (logTableName,
               column, noDataText, column)
             )
     
@@ -87,7 +87,7 @@ def findEmpty(column, verbose):
                "`regionCode` = '%s' OR "
                "`longitude` = '%s' OR "
                "`latitude` = '%s'"
-               % (tableName, 
+               % (logTableName, 
                   noDataText,
                   noDataText,
                   noDataText,

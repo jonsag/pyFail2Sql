@@ -20,10 +20,10 @@ def tablesConfig(verbose):
     if verbose:
         print "--- Reading table config..."
         
-    tables[tableName] = ("CREATE TABLE %s ("
+    tables[logTableName] = ("CREATE TABLE %s ("
                          "`no` int(11) NOT NULL AUTO_INCREMENT FIRST,"
                          " PRIMARY KEY (`no`)"
-                         ") ENGINE=InnoDB" % tableName)
+                         ") ENGINE=InnoDB" % logTableName)
     return tables
     
 def columnsConfig(verbose):
@@ -32,23 +32,23 @@ def columnsConfig(verbose):
     if verbose:
         print "--- Reading columns config..."
     
-    table1 = tableName   
-    set1 = [["timeStamp", "timestamp NOT NULL DEFAULT current_timestamp AFTER `no`"],
-            ["lastUpdated", "timestamp AFTER `timeStamp`"],
-            ["ip", "varchar(15) AFTER `lastUpdated`"],
-            ["name", "varchar(10) AFTER `ip`"],
-            ["protocol", "varchar(3) AFTER `name`"],
-            ["port", "int(5) AFTER `protocol`"],
-            ["city", "varchar(20) AFTER `port`"],
-            ["region", "varchar(20) AFTER `city`"],
-            ["country", "varchar(20) AFTER `region`"],
-            ["regionCode", "varchar(3) AFTER `coountry`"],
-            ["countryCode", "varchar(2) AFTER `regionCode`"],
-            ["longitude", "varchar(10) AFTER `countryCode`"],
-            ["latitude", "varchar(10) AFTER `longitude`"],
-            ["isp", "varchar(40) AFTER `latitude`"],
-            ["event", "varchar(15) AFTER `isp`"],
-            ["geoSource", "varchar(30) AFTER `event`"]]
+    table1 = logTableName   
+    set1 = [["timeStamp", "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `no`"],
+            ["lastUpdated", "TIMESTAMP AFTER `timeStamp`"],
+            ["ip", "VARCHAR(15) AFTER `lastUpdated`"],
+            ["name", "VARCHAR(10) AFTER `ip`"],
+            ["protocol", "VARCHAR(3) AFTER `name`"],
+            ["port", "INT(5) AFTER `protocol`"],
+            ["city", "VARCHAR(20) AFTER `port`"],
+            ["region", "VARCHAR(20) AFTER `city`"],
+            ["country", "VARCHAR(20) AFTER `region`"],
+            ["regionCode", "VARCHAR(3) AFTER `coountry`"],
+            ["countryCode", "VARCHAR(2) AFTER `regionCode`"],
+            ["longitude", "VARCHAR(10) AFTER `countryCode`"],
+            ["latitude", "VARCHAR(10) AFTER `longitude`"],
+            ["isp", "VARCHAR(40) AFTER `latitude`"],
+            ["event", "VARCHAR(15) AFTER `isp`"],
+            ["geoSource", "VARCHAR(30) AFTER `event`"]]
     
     for column, value in set1:
         columns.append({'table': table1, 'column': column, 'type': value})
@@ -203,6 +203,8 @@ def columnExists(table, column, columnType, cursor, verbose):
     for answer in result:
         if answer[0] == column:
             columnExists = True
+            if verbose:
+                print "--- Current column type is %s" % answer[1]
             if answer[1] == type:
                 typeCorrect = True
                 
