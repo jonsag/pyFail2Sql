@@ -102,11 +102,11 @@ if writeLog:
 if statistics and not ip and not country and not name:
     showStatistics(extendedStats, verbose)
 elif statistics and ip:
-    showExtendedStats("ip", ip, verbose)
+    showExtendedStats("ip", "IP", ip, verbose)
 elif statistics and country:
-    showExtendedStats("country", country, verbose)
+    showExtendedStats("country", "Country", country, verbose)
 elif statistics and name:
-    showExtendedStats("name", name, verbose)
+    showExtendedStats("name", "Service", name, verbose)
     
 if attack and ip:
     #scanIp(ip, verbose)
