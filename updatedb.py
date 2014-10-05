@@ -68,7 +68,7 @@ def fillColumn(column, cnx, cursor, verbose):
             addData(idNo, ipInfo, cnx, cursor, verbose)
     else:
         if verbose:
-            print "--- All posts have ISP data"
+            print "--- All posts have data"
             
             
 def findEmpty(column, verbose):

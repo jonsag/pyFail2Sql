@@ -22,6 +22,7 @@ timeOut = int(config.get('geoLookup', 'timeOut'))
 noDataText = config.get('geoLookup', 'noDataText')
 
 scores = int(config.get('presentation', 'scores'))
+spacing = int(config.get('presentation', 'spacing'))
 
 ##### what to do on errors
 def onError(errorCode, extra):
