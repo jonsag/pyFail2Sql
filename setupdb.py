@@ -21,7 +21,7 @@ def tablesConfig(verbose):
         print "--- Reading table config..."
         
     tables[tableName] = ("CREATE TABLE %s ("
-                         " `no` int(11) NOT NULL AUTO_INCREMENT,"
+                         "`no` int(11) NOT NULL AUTO_INCREMENT FIRST,"
                          " PRIMARY KEY (`no`)"
                          ") ENGINE=InnoDB" % tableName)
     return tables
@@ -33,22 +33,22 @@ def columnsConfig(verbose):
         print "--- Reading columns config..."
     
     table1 = tableName   
-    set1 = [["timeStamp", "timestamp NOT NULL DEFAULT current_timestamp"],
-            ["lastUpdated", "timestamp"],
-            ["name", "varchar(10)"],
-            ["protocol", "varchar(3)"],
-            ["port", "int(5)"],
-            ["ip", "varchar(15)"],
-            ["event", "varchar(15)"],
-            ["longitude", "varchar(10)"],
-            ["latitude", "varchar(10)"],
-            ["countryCode", "varchar(2)"],
-            ["city", "varchar(20)"],
-            ["region", "varchar(20)"],
-            ["country", "varchar(20)"],
-            ["regionCode", "varchar(3)"],
-            ["isp", "varchar(40)"],
-            ["geoSource", "varchar(30)"]]
+    set1 = [["timeStamp", "timestamp NOT NULL DEFAULT current_timestamp AFTER `no`"],
+            ["lastUpdated", "timestamp AFTER `timeStamp`"],
+            ["ip", "varchar(15) AFTER `lastUpdated`"],
+            ["name", "varchar(10) AFTER `ip`"],
+            ["protocol", "varchar(3) AFTER `name`"],
+            ["port", "int(5) AFTER `protocol`"],
+            ["city", "varchar(20) AFTER `port`"],
+            ["region", "varchar(20) AFTER `city`"],
+            ["country", "varchar(20) AFTER `region`"],
+            ["regionCode", "varchar(3) AFTER `coountry`"],
+            ["countryCode", "varchar(2) AFTER `regionCode`"],
+            ["longitude", "varchar(10) AFTER `countryCode`"],
+            ["latitude", "varchar(10) AFTER `longitude`"],
+            ["isp", "varchar(40) AFTER `latitude`"],
+            ["event", "varchar(15) AFTER `isp`"],
+            ["geoSource", "varchar(30) AFTER `event`"]]
     
     for column, value in set1:
         columns.append({'table': table1, 'column': column, 'type': value})
