@@ -9,7 +9,7 @@ from setupdb import columnExists
 def addData(idNo, ipInfo, cnx, cursor, verbose):
     
     sql = (
-           "UPDATE %s SET countryCode='%s', "
+           "UPDATE %s SET lastUpdated=current_timestamp, countryCode='%s', "
            "city='%s', region='%s', country='%s', "
            "regionCode='%s', geoSource='%s', "
            "longitude='%s', latitude='%s', "
@@ -79,15 +79,17 @@ def findEmpty(column, verbose):
     
     if not column: # search all columns   
         sql = (
-               "SELECT no, ip, city, region, country FROM %s WHERE "
-               "`city` = '%s' OR"
-               "`region` = '%s' OR "
-               "`country` = '%s' OR "
-               "`country` = '%s' OR "
-               "`regionCode` = '%s' OR "
-               "`longitude` = '%s' OR "
-               "`latitude` = '%s'"
+               "SELECT no, ip, city, region, country FROM %s WHERE"
+               " `city` = '%s' OR"
+               " `region` = '%s' OR"
+               " `country` = '%s' OR"
+               " `country` = '%s' OR"
+               " `regionCode` = '%s' OR"
+               " `longitude` = '%s' OR"
+               " `latitude` = '%s' OR"
+               " `isp` = '%s'"
                % (logTableName, 
+                  noDataText,
                   noDataText,
                   noDataText,
                   noDataText,
