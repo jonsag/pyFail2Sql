@@ -31,13 +31,14 @@ country = ""
 rootUser = ""
 rootPass = ""
 column = ""
+countryCode = ""
 
 ############### handle arguments ###############
 try:
     myopts, args = getopt.getopt(sys.argv[1:],'wsxalfn:q:p:i:e:c:vh' ,
     ['write', 'statistics', 'extendedstatistics', 'attack', 'lookup', 'fillempty'
      'name=', 'protocol=', 'port=', 'ip=', 'event=', 'country=',
-     'setupdb', 'rootuser=', 'rootpass=', 'column=',
+     'setupdb', 'rootuser=', 'rootpass=', 'column=', 'cc=',
      'verbose', 'help'])
 
 except getopt.GetoptError as e:
@@ -82,6 +83,8 @@ for option, argument in myopts:
         rootPass = argument
     elif option in ('--column'):
         column = argument
+    elif option in ('--cc'):
+        countryCode = argument
     elif option in ('-h', '--help'):
         usage(0)
         
@@ -99,7 +102,7 @@ if writeLog:
         print sql
     result = doQuery(sql, verbose) # write to log
 
-if statistics and not ip and not country and not name:
+if statistics and not ip and not country and not name and not countryCode:
     showStatistics(extendedStats, verbose)
 elif statistics and ip:
     showExtendedStats("ip", "IP", ip, verbose)
@@ -107,6 +110,8 @@ elif statistics and country:
     showExtendedStats("country", "Country", country, verbose)
 elif statistics and name:
     showExtendedStats("name", "Service", name, verbose)
+elif statistics and countryCode:
+    showExtendedStats("countryCode", "Country code", countryCode, verbose)
     
 if attack and ip:
     #scanIp(ip, verbose)

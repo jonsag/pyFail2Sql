@@ -72,7 +72,11 @@ def showExtendedStats(searchField, text, searchTerm, verbose):
     
     cursor = cnx.cursor() # create cursor
     
-    sql = "SELECT %s, COUNT(*) FROM %s WHERE %s = '%s'" % (searchField, logTableName, searchField, searchTerm)
+    sql = (
+           "SELECT %s, COUNT(*) FROM %s WHERE %s = '%s'"
+           % (searchField, logTableName, searchField, searchTerm)
+           )
+    
     cursor = executeSql(cursor, sql, verbose)
     result = cursor.fetchall()
     
