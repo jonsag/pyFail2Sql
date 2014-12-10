@@ -33,7 +33,8 @@ def columnsConfig(verbose):
         print "--- Reading columns config..."
     
     table1 = logTableName   
-    set1 = [["timeStamp", "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `no`"],
+    set1 = [
+            ["timeStamp", "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `no`"],
             ["lastUpdated", "TIMESTAMP AFTER `timeStamp`"],
             ["ip", "VARCHAR(15) AFTER `lastUpdated`"],
             ["name", "VARCHAR(10) AFTER `ip`"],
@@ -48,7 +49,8 @@ def columnsConfig(verbose):
             ["latitude", "VARCHAR(10) AFTER `longitude`"],
             ["isp", "VARCHAR(40) AFTER `latitude`"],
             ["event", "VARCHAR(15) AFTER `isp`"],
-            ["geoSource", "VARCHAR(30) AFTER `event`"]]
+            ["geoSource", "VARCHAR(30) AFTER `event`"]
+            ]
     
     for column, value in set1:
         columns.append({'table': table1, 'column': column, 'type': value})
