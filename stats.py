@@ -10,10 +10,10 @@ def showStatistics(extendedStats, verbose):
     stat = []
     statCount = 0
     
-    cnx =connect(dbName, verbose) # connect to database
+    cnx = connect(dbName, verbose)  # connect to database
     print "Statistics:\n"
 
-    cursor = cnx.cursor() # create cursor
+    cursor = cnx.cursor()  # create cursor
         
     fieldList = (["ip", "IP"], ["country", "Country"], ["name", "Service"], ["isp", "ISP"])
         
@@ -27,7 +27,7 @@ def showStatistics(extendedStats, verbose):
         cursor = executeSql(cursor, sql, verbose)
         result = cursor.fetchall()
         
-        maxText = len(text) # find how we will print this
+        maxText = len(text)  # find how we will print this
         maxCount = 0
         for field, count in result:
             maxText = max(maxText, len(field))
@@ -56,7 +56,7 @@ def showStatistics(extendedStats, verbose):
             statCount += 1
         
     cursor.close()
-    disconnect(cnx, verbose) # disconnect from database
+    disconnect(cnx, verbose)  # disconnect from database
     
 def showExtendedStats(searchField, text, searchTerm, verbose):
     timeText = "Time"
@@ -66,11 +66,11 @@ def showExtendedStats(searchField, text, searchTerm, verbose):
     countryText = "Country"
     ispText = "ISP"
     
-    cnx =connect(dbName, verbose) # connect to database
+    cnx = connect(dbName, verbose)  # connect to database
     print "Statistics on %s %s:" % (text, searchTerm)
     print "-" * scores
     
-    cursor = cnx.cursor() # create cursor
+    cursor = cnx.cursor()  # create cursor
     
     sql = (
            "SELECT %s, COUNT(*) FROM %s WHERE %s = '%s'"
@@ -87,7 +87,7 @@ def showExtendedStats(searchField, text, searchTerm, verbose):
             else:
                 word = "times"
             print "Banned %s %s:" % (count, word)
-            #print "-" * (scores / 2)
+            # print "-" * (scores / 2)
             
             sql = "SELECT `timeStamp`, `ip`, `city`, `region`, `country`, `countryCode`, `isp` FROM %s WHERE %s = '%s'" % (logTableName, searchField, searchTerm)
             cursor = executeSql(cursor, sql, verbose)
@@ -135,11 +135,11 @@ def showExtendedStats(searchField, text, searchTerm, verbose):
                        "%-*s"
                        "%-*s"
                        "%-*s"
-                       % (maxTimeStamp, timeStamp, 
-                          maxIp, ip, 
+                       % (maxTimeStamp, timeStamp,
+                          maxIp, ip,
                           maxCity, city,
                           maxRegion, region,
-                          maxCountry, country, 
+                          maxCountry, country,
                           maxIsp, isp)
                           )
             print
@@ -148,5 +148,5 @@ def showExtendedStats(searchField, text, searchTerm, verbose):
             print
             
     cursor.close()
-    disconnect(cnx, verbose) # disconnect from database
+    disconnect(cnx, verbose)  # disconnect from database
     

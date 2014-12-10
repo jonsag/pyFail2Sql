@@ -16,7 +16,7 @@ def create_database(cursor):
         onError(7, "Failed creating database: {}".format(err))
     
 def tablesConfig(verbose):
-    tables = {} # tables that will be created
+    tables = {}  # tables that will be created
     if verbose:
         print "--- Reading table config..."
         
@@ -27,7 +27,7 @@ def tablesConfig(verbose):
     return tables
     
 def columnsConfig(verbose):
-    columns = [] # columns that will be added
+    columns = []  # columns that will be added
     
     if verbose:
         print "--- Reading columns config..."
@@ -59,9 +59,9 @@ def columnsConfig(verbose):
         
 def connectToDb(rootUser, rootPass, dBase, verbose):
     if not rootUser:
-        rootUser = raw_input("User with rights to create database: ") # get user
+        rootUser = raw_input("User with rights to create database: ")  # get user
     if not rootPass:
-        rootPass = getpass("Password: ") # get user's passsword
+        rootPass = getpass("Password: ")  # get user's passsword
     
     if verbose:
         print "--- Username: %s\n--- Password: %s" % (rootUser, rootPass)
@@ -69,11 +69,11 @@ def connectToDb(rootUser, rootPass, dBase, verbose):
     if not dBase:
         if verbose:
             print "--- Connecting to db server %s as user %s..." % (dbHost, rootUser)
-        try: # connect to server, no database
-            cnx = mysql.connector.connect(user = rootUser, password = rootPass, host = dbHost, port = dbPort)
+        try:  # connect to server, no database
+            cnx = mysql.connector.connect(user=rootUser, password=rootPass, host=dbHost, port=dbPort)
             if verbose:
                 print "    OK"
-        except mysql.connector.Error as err: # get errors
+        except mysql.connector.Error as err:  # get errors
             if err.errno == mysql.connector.errorcode.ER_ACCESS_DENIED_ERROR:
                 onError(4, "Something is wrong with your user name or password\n    Have you run with argument '--setupdb' yet?")
             elif err.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
@@ -81,11 +81,11 @@ def connectToDb(rootUser, rootPass, dBase, verbose):
             else:
                 onError(6, err)
     elif dBase:
-        try: # connect to server, set database
-            cnx = mysql.connector.connect(user = rootUser, password = rootPass, host = dbHost, port = dbPort, database=dBase)
+        try:  # connect to server, set database
+            cnx = mysql.connector.connect(user=rootUser, password=rootPass, host=dbHost, port=dbPort, database=dBase)
             if verbose:
                 print "    OK"
-        except mysql.connector.Error as err: # get errors
+        except mysql.connector.Error as err:  # get errors
             if err.errno == mysql.connector.errorcode.ER_ACCESS_DENIED_ERROR:
                 onError(4, "Something is wrong with your user name or password\n    Have you run with argument '--setupdb' yet?")
             elif err.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
@@ -103,7 +103,7 @@ def createDatabase(cursor, verbose):
     if verbose:
         print "--- Checking if database already exists"
         print "+++ sql = %s" % sql
-    try: # check if database already exists
+    try:  # check if database already exists
         cursor.execute(sql)
     except mysql.connector.Error as err:
         onError(10, "Failed checking if database exists: {}".format(err))
@@ -120,7 +120,7 @@ def createDatabase(cursor, verbose):
         sql = "CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(dbName)
         if verbose:
             print "+++ sql = %s" % sql
-        try: # create table
+        try:  # create table
             cursor.execute(sql)
             if verbose:
                 print "    OK"
@@ -150,7 +150,7 @@ def tableExists(newTable, cursor, verbose):
     if verbose:
             print "--- Checking if table %s already exists" % newTable
             print "+++ sql = %s" % sql
-    try: # check if table already exists
+    try:  # check if table already exists
         cursor.execute(sql)
     except mysql.connector.Error as err:
         onError(10, "Failed checking if table exists: {}".format(err))
@@ -171,14 +171,14 @@ def createTables(cursor, verbose):
     if verbose:
         print "--- Creating tables..."
     
-    for newTable, createTableSql in tables.iteritems(): # create the tables one by one
+    for newTable, createTableSql in tables.iteritems():  # create the tables one by one
         tableAlreadyExists = tableExists(newTable, cursor, verbose)
         if not tableAlreadyExists:
             print "--- Creating %s..." % newTable
             if verbose:
                 print "+++ sql = %s" % createTableSql
             try:
-                #print("Creating table {}: ".format(newTable), end='')
+                # print("Creating table {}: ".format(newTable), end='')
                 cursor.execute(createTableSql)
             except mysql.connector.Error as err:
                 if err.errno == mysql.connector.errorcode.ER_TABLE_EXISTS_ERROR:
@@ -195,7 +195,7 @@ def columnExists(table, column, columnType, cursor, verbose):
     sql = "SHOW COLUMNS FROM `%s` LIKE '%s'" % (table, column)
     if verbose:
         print "+++ sql = %s" % sql
-    try: # checking if column exists
+    try:  # checking if column exists
         cursor.execute(sql)
         if verbose:
             print "    OK"
@@ -226,7 +226,7 @@ def createColumns(cursor, verbose):
         columnType = column['type']
         columnAlreadyExists, typeCorrect = columnExists(column['table'], column['column'], columnType, cursor, verbose)
                 
-        if columnAlreadyExists: # column exists
+        if columnAlreadyExists:  # column exists
             if verbose:
                 print "--- Column '%s' exists" % column['column']
             if typeCorrect:
@@ -244,7 +244,7 @@ def createColumns(cursor, verbose):
                         print "    OK"
                 except mysql.connector.Error as err:
                     onError(10, "Error: {}".format(err))
-        else: # column does not exist
+        else:  # column does not exist
             sql = "ALTER TABLE %s ADD `%s` %s" % (column['table'], column['column'], column['type'])
             if verbose:
                 print "--- Column '%s' does not exist" % column['column']
@@ -266,7 +266,7 @@ def createUser(cursor, verbose):
     if verbose:
         print "--- Checking if user %s already exists" % dbUser
         print "+++ sql = %s" % sql
-    try: # check if user already exists
+    try:  # check if user already exists
         cursor.execute(sql)
     except mysql.connector.Error as err:
         onError(10, "Failed checking if user exists: {}".format(err))
@@ -276,10 +276,10 @@ def createUser(cursor, verbose):
         if verbose:
             print "--- User exists"
     if not userExists:
-        sql = "CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'" % (dbUser, dbPass) # sql for creating user
+        sql = "CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'" % (dbUser, dbPass)  # sql for creating user
         if verbose:
             print "+++ sql = %s" % sql
-        try: # create user
+        try:  # create user
             cursor.execute(sql)
         except mysql.connector.Error as err:
             onError(9, err.msg)
@@ -287,10 +287,10 @@ def createUser(cursor, verbose):
             if verbose:
                 print "    OK"
                 print "--- Adding privileges"
-        sql = "GRANT ALL PRIVILEGES ON %s.* TO '%s'@'localhost' WITH GRANT OPTION" % (dbName, dbUser) # sql for grants
+        sql = "GRANT ALL PRIVILEGES ON %s.* TO '%s'@'localhost' WITH GRANT OPTION" % (dbName, dbUser)  # sql for grants
         if verbose:
             print "+++ sql = %s" % sql
-        try: # create grants for normal user
+        try:  # create grants for normal user
             cursor.execute(sql)
         except mysql.connector.Error as err:
             onError(9, err.msg)
@@ -298,34 +298,34 @@ def createUser(cursor, verbose):
             if verbose:
                 print "    OK"
     
-def setupDB(rootUser, rootPass, verbose): # setup the database with tables and users
+def setupDB(rootUser, rootPass, verbose):  # setup the database with tables and users
     if verbose:
         print "--- Setting up database"
 
-    cnx, rootUser, rootPass = connectToDb(rootUser, rootPass, False, verbose) # get credentials and connect to db server
-    cursor = cnx.cursor() # construct cursor to use
+    cnx, rootUser, rootPass = connectToDb(rootUser, rootPass, False, verbose)  # get credentials and connect to db server
+    cursor = cnx.cursor()  # construct cursor to use
 
-    createDatabase(cursor, verbose) # check if database already exists, if not, create it
+    createDatabase(cursor, verbose)  # check if database already exists, if not, create it
 
-    createUser(cursor, verbose) # check if user exists, if not, create
+    createUser(cursor, verbose)  # check if user exists, if not, create
     
     cursor.close()
-    disconnect(cnx, verbose) # disconnect from server
+    disconnect(cnx, verbose)  # disconnect from server
 
-    #cnx, cursor = useDatabase(cnx, cursor, verbose) # use the new database
-    cnx, rootUser, rootPass = connectToDb(rootUser, rootPass, dbName, verbose) # connect to server, set database to use
-    cursor = cnx.cursor() # create cursor
+    # cnx, cursor = useDatabase(cnx, cursor, verbose) # use the new database
+    cnx, rootUser, rootPass = connectToDb(rootUser, rootPass, dbName, verbose)  # connect to server, set database to use
+    cursor = cnx.cursor()  # create cursor
     
-    createTables(cursor, verbose) # check if tables exists, if not, create them
+    createTables(cursor, verbose)  # check if tables exists, if not, create them
     
     createColumns(cursor, verbose)
 
     cursor.close()
-    disconnect(cnx, verbose) # disconnect from database
+    disconnect(cnx, verbose)  # disconnect from database
   
     if verbose:
         print "--- Trying to connect to server as normal user..."
-    cnx = connect(dbName, verbose) # connect to database as normal user
+    cnx = connect(dbName, verbose)  # connect to database as normal user
     if cnx:
         if verbose:
             print "--- Connected as normal user"

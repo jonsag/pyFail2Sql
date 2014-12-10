@@ -35,7 +35,7 @@ countryCode = ""
 
 ############### handle arguments ###############
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'wsxalfn:q:p:i:e:c:vh' ,
+    myopts, args = getopt.getopt(sys.argv[1:], 'wsxalfn:q:p:i:e:c:vh' ,
     ['write', 'statistics', 'extendedstatistics', 'attack', 'lookup', 'fillempty'
      'name=', 'protocol=', 'port=', 'ip=', 'event=', 'country=',
      'setupdb', 'rootuser=', 'rootpass=', 'column=', 'cc=',
@@ -44,7 +44,7 @@ try:
 except getopt.GetoptError as e:
     onError(1, str(e))
 
-if len(sys.argv) == 1: # no options passed
+if len(sys.argv) == 1:  # no options passed
     onError(2, 2)
     
 for option, argument in myopts:
@@ -95,12 +95,12 @@ if setupDatabase:
     setupDB(rootUser, rootPass, verbose)    
     
 if writeLog:
-    log = (name, protocol, port, ip, event) # declare the log to write
-    ipInfo = lookupIP(ip, verbose) # get geographical info of ip
-    sql = logSql(log, ipInfo, verbose) # construct dbcomm
+    log = (name, protocol, port, ip, event)  # declare the log to write
+    ipInfo = lookupIP(ip, verbose)  # get geographical info of ip
+    sql = logSql(log, ipInfo, verbose)  # construct dbcomm
     if verbose:
         print sql
-    result = doQuery(sql, verbose) # write to log
+    result = doQuery(sql, verbose)  # write to log
 
 if statistics and not ip and not country and not name and not countryCode:
     showStatistics(extendedStats, verbose)
@@ -114,7 +114,7 @@ elif statistics and countryCode:
     showExtendedStats("countryCode", "Country code", countryCode, verbose)
     
 if attack and ip:
-    #scanIp(ip, verbose)
+    # scanIp(ip, verbose)
     nmap(ip, verbose)
 elif attack and not ip:
     onError(12, "Option -a requires -i <ip>")

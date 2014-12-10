@@ -25,7 +25,7 @@ def addData(idNo, ipInfo, cnx, cursor, verbose):
         
     cursor = executeSql(cursor, sql, verbose)
     
-    cnx.commit() # commit changes
+    cnx.commit()  # commit changes
     
 def fillColumn(column, cnx, cursor, verbose):
     posts = []
@@ -75,9 +75,9 @@ def findEmpty(column, verbose):
     posts = []
     
     cnx = connect(dbName, verbose)
-    cursor = cnx.cursor() # create cursor
+    cursor = cnx.cursor()  # create cursor
     
-    if not column: # search all columns   
+    if not column:  # search all columns   
         sql = (
                "SELECT no, ip, city, region, country FROM %s WHERE"
                " `city` = '%s' OR"
@@ -88,7 +88,7 @@ def findEmpty(column, verbose):
                " `longitude` = '%s' OR"
                " `latitude` = '%s' OR"
                " `isp` = '%s'"
-               % (logTableName, 
+               % (logTableName,
                   noDataText,
                   noDataText,
                   noDataText,
@@ -118,7 +118,7 @@ def findEmpty(column, verbose):
         else:
             if verbose:
                 print "--- All posts have geo data"
-    else: # search only given column
+    else:  # search only given column
         fillColumn(column, cnx, cursor, verbose)
         
     cursor.close()

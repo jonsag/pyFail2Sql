@@ -6,15 +6,15 @@ import ConfigParser, os, sys
 
 ##### read config file
 config = ConfigParser.ConfigParser()
-config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__))) # read config file
+config.read("%s/config.ini" % os.path.dirname(os.path.realpath(__file__)))  # read config file
 
-dbHost = config.get('mysql','dbHost')
-dbPort = int(config.get('mysql','dbPort'))
-dbName = config.get('mysql','dbName')
-logTableName = config.get('mysql','logTableName')
+dbHost = config.get('mysql', 'dbHost')
+dbPort = int(config.get('mysql', 'dbPort'))
+dbName = config.get('mysql', 'dbName')
+logTableName = config.get('mysql', 'logTableName')
 
-dbUser = config.get('mysql','dbUser')
-dbPass = config.get('mysql','dbPass')
+dbUser = config.get('mysql', 'dbUser')
+dbPass = config.get('mysql', 'dbPass')
 
 freegeoipAPI = config.get('geoLookup', 'freeGeoIpAPI')  
 telizeAPI = config.get('geoLookup', 'telizeAPI')
