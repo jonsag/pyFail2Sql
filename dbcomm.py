@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-
 from misc import *
 
 import mysql.connector
