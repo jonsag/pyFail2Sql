@@ -7,6 +7,10 @@ Installation
 ============
 copy files to suitable folder
 
+setup database:
+./pyFail2Sql.py --setupdb
+
+
 edit your action, for example action.d/iptables.conf
 
 add row beneath 'actionban = iptables -I fail2ban-<name> 1 -s <ip> -j <blocktype>'
